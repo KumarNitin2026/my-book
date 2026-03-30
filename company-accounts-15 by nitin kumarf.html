@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyBooks - Company Accounts</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MyBooks">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f14;--surface:#141720;--card:#1a1e2e;--border:#252a3d;--accent:#4f8ef7;--accent2:#f7c94f;--green:#3ecf8e;--red:#f76f6f;--text:#e8eaf0;--muted:#6b7280;--fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;display:flex;}
+/* SIDEBAR */
+.sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto;}
+.logo{padding:20px;border-bottom:1px solid var(--border);}
+.logo h1{font-family:var(--fh);font-size:20px;color:var(--accent);letter-spacing:1px;}
+.logo .time-block{margin-top:8px;}
+.logo .clock{font-family:var(--fh);font-size:22px;font-weight:700;color:var(--text);}
+.logo .date-str{font-size:11px;color:var(--muted);margin-top:2px;}
+.logo .greeting{font-size:13px;color:var(--accent2);margin-top:4px;font-weight:600;}
+.nav{flex:1;padding:12px 0;}
+.nav-section{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:10px 20px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:var(--muted);transition:all .2s;border-left:3px solid transparent;font-family:var(--fh);font-size:14px;font-weight:500;user-select:none;}
+.nav-item:hover{color:var(--text);background:rgba(79,142,247,.07);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(79,142,247,.1);}
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+/* MAIN */
+.main{margin-left:230px;flex:1;padding:24px 28px;}
+.page{display:none;}.page.active{display:block;}
+.page-header{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;}
+.page-header h2{font-family:var(--fh);font-size:26px;font-weight:700;}
+.page-header p{color:var(--muted);font-size:13px;margin-top:3px;}
+/* GREETING BANNER */
+.greet-banner{background:linear-gradient(135deg,#1a1e2e,#1e2540);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+.greet-left h3{font-family:var(--fh);font-size:22px;font-weight:700;}
+.greet-left p{font-size:13px;color:var(--muted);margin-top:4px;}
+.greet-icon{font-size:48px;}
+/* CARDS */
+.cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.cards-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+.cards-row-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:55px;height:55px;border-radius:0 12px 0 55px;opacity:.15;}
+.ci::before{background:var(--green);}.ce::before{background:var(--red);}.cs::before{background:var(--accent);}.cw::before{background:var(--accent2);}.cp::before{background:#a78bfa;}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.stat-value{font-family:var(--fh);font-size:24px;font-weight:700;margin-top:6px;}
+.sg{color:var(--green);}.sr{color:var(--red);}.sb{color:var(--accent);}.sy{color:var(--accent2);}.sp{color:#a78bfa;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+/* TABLE */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.table-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-header h3{font-family:var(--fh);font-size:16px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid rgba(37,42,61,.5);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(79,142,247,.04);}
+.badge{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.bi{background:rgba(62,207,142,.15);color:var(--green);}
+.be{background:rgba(247,111,111,.15);color:var(--red);}
+.bw{background:rgba(247,201,79,.15);color:var(--accent2);}
+/* FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px;}
+.form-card h3{font-family:var(--fh);font-size:17px;margin-bottom:18px;color:var(--accent);}
+.fg4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.fg3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.fg2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.fg5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:end;margin-top:14px;}
+.fgroup{display:flex;flex-direction:column;gap:5px;}
+.fgroup label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+input,select,textarea{background:#0f1118;border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;font-family:var(--fb);outline:none;transition:border .2s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:#1a1e2e;}
+.btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-family:var(--fh);font-size:14px;font-weight:600;letter-spacing:.5px;transition:all .2s;}
+.bp{background:var(--accent);color:#fff;}.bp:hover{background:#3a7ef0;}
+.bd{background:var(--red);color:#fff;}
+.bg2{background:var(--green);color:#fff;}
+.bsm{padding:4px 12px;font-size:12px;border-radius:6px;}
+/* PNL BAR */
+.pnl-bar{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.pnl-item{display:flex;flex-direction:column;}
+.pnl-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.pnl-val{font-family:var(--fh);font-size:20px;font-weight:700;}
+.divider{width:1px;height:44px;background:var(--border);}
+/* STAFF */
+.staff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;}
+.staff-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.sname{font-family:var(--fh);font-size:17px;font-weight:700;margin-bottom:3px;}
+.srole{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.srow{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+/* JOURNAL */
+.jentry{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
+.jhead{display:flex;justify-content:space-between;margin-bottom:10px;align-items:center;}
+.jtable{width:100%;border-collapse:collapse;font-size:13px;}
+.jtable th{color:var(--muted);font-size:11px;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);}
+.jtable td{padding:6px 8px;}
+.jdr{color:var(--red);}.jcr{color:var(--green);padding-left:20px;}
+/* ACCOUNTS */
+.acc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.acc-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;}
+.acc-type-badge{position:absolute;top:12px;right:12px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.acc-name{font-family:var(--fh);font-size:17px;font-weight:700;margin-bottom:4px;margin-right:60px;}
+.acc-bal{font-family:var(--fh);font-size:20px;font-weight:700;margin-top:8px;}
+.acc-code{font-size:11px;color:var(--muted);}
+/* TRIAL BALANCE */
+.tb-section{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.tb-title{padding:14px 18px;border-bottom:1px solid var(--border);font-family:var(--fh);font-size:17px;font-weight:700;}
+.tb-total td{font-family:var(--fh);font-size:14px;font-weight:700;border-top:2px solid var(--border)!important;background:rgba(79,142,247,.06);}
+.tb-msg{padding:12px 18px;font-family:var(--fh);font-size:14px;font-weight:600;}
+/* BALANCE SHEET */
+.bs-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+.bs-side{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.bs-title{padding:12px 18px;font-family:var(--fh);font-size:16px;font-weight:700;border-bottom:1px solid var(--border);}
+.bsl{color:var(--red);}.bsa{color:var(--green);}
+.bs-row{display:flex;justify-content:space-between;padding:9px 18px;border-bottom:1px solid rgba(37,42,61,.4);font-size:13px;}
+.bs-sub{background:rgba(255,255,255,.03);font-weight:600;color:var(--accent);}
+.bs-tot{font-family:var(--fh);font-size:15px;font-weight:700;border-top:2px solid var(--border);background:rgba(79,142,247,.06);}
+.bs-grp{padding:7px 18px 3px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;background:rgba(0,0,0,.2);}
+.bs-check{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:20px;}
+/* P&L */
+.pnl-section{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.pnl-section-title{padding:14px 18px;border-bottom:1px solid var(--border);font-family:var(--fh);font-size:17px;font-weight:700;}
+.pnl-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.pnl-col{padding:16px 18px;}
+.pnl-col-title{font-family:var(--fh);font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.pnl-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(37,42,61,.3);}
+.pnl-total-row{display:flex;justify-content:space-between;font-family:var(--fh);font-size:15px;font-weight:700;padding:8px 0;border-top:2px solid var(--border);margin-top:6px;}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;width:480px;max-width:95vw;}
+.modal h3{font-family:var(--fh);font-size:20px;margin-bottom:20px;color:var(--accent);}
+.modal-actions{display:flex;gap:12px;margin-top:20px;justify-content:flex-end;}
+/* CYCLE FLOW */
+.cycle{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:20px;}
+.cycle-step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 32px;font-family:var(--fh);font-size:15px;font-weight:600;width:320px;text-align:center;cursor:pointer;transition:all .2s;}
+.cycle-step:hover{border-color:var(--accent);color:var(--accent);}
+.cycle-step.done{border-color:var(--green);color:var(--green);}
+.cycle-arrow{color:var(--red);font-size:20px;margin:4px 0;}
+/* DOWNLOAD BTN */
+.download-fab{position:fixed;bottom:28px;right:28px;background:var(--green);color:#fff;border:none;border-radius:50px;padding:12px 22px;font-family:var(--fh);font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(62,207,142,.4);z-index:200;display:flex;align-items:center;gap:8px;}
+.download-fab:hover{background:#2fb87a;transform:translateY(-2px);}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <h1>📊 MyBooks</h1>
+    <div class="time-block">
+      <div class="clock" id="clock">00:00:00</div>
+      <div class="date-str" id="datestr"></div>
+      <div class="greeting" id="greet-side"></div>
+    </div>
+  </div>
+  <nav class="nav" id="sidenav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" data-pg="dashboard"><span class="nav-icon">🏠</span>Dashboard</div>
+    <div class="nav-item" data-pg="accounts"><span class="nav-icon">🏦</span>Accounts</div>
+    <div class="nav-item" data-pg="capital"><span class="nav-icon">💰</span>Capital</div>
+    <div class="nav-section">Accounting Cycle</div>
+    <div class="nav-item" data-pg="transactions"><span class="nav-icon">🔄</span>Transactions</div>
+    <div class="nav-item" data-pg="journal"><span class="nav-icon">📝</span>Journal Entry</div>
+    <div class="nav-item" data-pg="ledger"><span class="nav-icon">📒</span>Ledger Posting</div>
+    <div class="nav-item" data-pg="inventory"><span class="nav-icon">📦</span>Inventory</div>
+    <div class="nav-item" data-pg="salary"><span class="nav-icon">👥</span>Staff Salary</div>
+    <div class="nav-section">Reports</div>
+    <div class="nav-item" data-pg="trialbalance"><span class="nav-icon">⚖️</span>Trial Balance</div>
+    <div class="nav-item" data-pg="pnl"><span class="nav-icon">📈</span>Profit &amp; Loss</div>
+    <div class="nav-item" data-pg="balancesheet"><span class="nav-icon">🏛️</span>Balance Sheet</div>
+  </nav>
+</div>
+
+<!-- DOWNLOAD FAB -->
+<button class="download-fab" id="btn-download">⬇ Download Report</button>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="pg-dashboard">
+    <div class="greet-banner">
+      <div class="greet-left">
+        <h3 id="greet-main">Good Morning!</h3>
+        <p id="greet-sub">Aaj ka din productive ho 🙏</p>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px" id="greet-time2"></div>
+      </div>
+      <div class="greet-icon" id="greet-emoji">🌅</div>
+    </div>
+    <div class="cards-row">
+      <div class="stat-card ci"><div class="stat-label">Total Capital</div><div class="stat-value sp" id="d-cap">₹0</div><div class="stat-sub">Invested</div></div>
+      <div class="stat-card ci"><div class="stat-label">Total Income</div><div class="stat-value sg" id="d-inc">₹0</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card ce"><div class="stat-label">Total Expense</div><div class="stat-value sr" id="d-exp">₹0</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card cw"><div class="stat-label">Net P&amp;L</div><div class="stat-value" id="d-pnl">₹0</div><div class="stat-sub">Profit / Loss</div></div>
+    </div>
+    <div class="cards-row">
+      <div class="stat-card cs"><div class="stat-label">Accounts</div><div class="stat-value sb" id="d-acc">0</div><div class="stat-sub">Created</div></div>
+      <div class="stat-card cs"><div class="stat-label">Stock Items</div><div class="stat-value sb" id="d-stk">0</div><div class="stat-sub">Products</div></div>
+      <div class="stat-card cw"><div class="stat-label">Staff</div><div class="stat-value sy" id="d-stf">0</div><div class="stat-sub">Employees</div></div>
+      <div class="stat-card ce"><div class="stat-label">Journal Entries</div><div class="stat-value sr" id="d-jen">0</div><div class="stat-sub">Posted</div></div>
+    </div>
+    <!-- Accounting Cycle -->
+    <div class="form-card" style="margin-bottom:20px">
+      <h3>📋 Accounting Cycle — Step by Step</h3>
+      <div class="cycle" id="cycle-flow"></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Recent Transactions</h3></div>
+      <table><thead><tr><th>Date</th><th>Description</th><th>Account</th><th>Type</th><th>Amount</th></tr></thead><tbody id="d-rec"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div class="page" id="pg-accounts">
+    <div class="page-header"><div><h2>Accounts</h2><p>Company ke sabhi accounts manage karo</p></div></div>
+    <div class="form-card">
+      <h3>+ Naya Account Banao</h3>
+      <div class="fg3">
+        <div class="fgroup"><label>Account Name</label><input type="text" id="ac-name" placeholder="Jaise: Cash, Bank, Debtors..."></div>
+        <div class="fgroup"><label>Account Type</label>
+          <select id="ac-type">
+            <option value="Asset">Asset (Sampatti)</option>
+            <option value="Liability">Liability (Dayitva)</option>
+            <option value="Capital">Capital (Punji)</option>
+            <option value="Income">Income (Aay)</option>
+            <option value="Expense">Expense (Vyay)</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Opening Balance (₹)</label><input type="number" id="ac-bal" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Account Code</label><input type="text" id="ac-code" placeholder="Jaise: A001, B002..."></div>
+        <div class="fgroup"><label>Description</label><input type="text" id="ac-desc" placeholder="Optional notes..."></div>
+        <div class="fgroup"><label>&nbsp;</label><button class="btn bp" id="btn-ac">Create Account</button></div>
+      </div>
+    </div>
+    <div class="acc-grid" id="acc-grid"><p style="color:var(--muted)">Koi account nahi bana abhi</p></div>
+  </div>
+
+  <!-- CAPITAL -->
+  <div class="page" id="pg-capital">
+    <div class="page-header"><div><h2>Capital Management</h2><p>Business mein invest ki gayi punji ka record</p></div></div>
+    <div class="cards-row-3">
+      <div class="stat-card cp"><div class="stat-label">Total Capital Invested</div><div class="stat-value sp" id="cap-total">₹0</div></div>
+      <div class="stat-card ci"><div class="stat-label">Net Profit Added</div><div class="stat-value sg" id="cap-pnl">₹0</div></div>
+      <div class="stat-card cw"><div class="stat-label">Net Capital (Book Value)</div><div class="stat-value sy" id="cap-net">₹0</div></div>
+    </div>
+    <div class="form-card">
+      <h3>+ Capital Entry Add Karo</h3>
+      <div class="fg3">
+        <div class="fgroup"><label>Date</label><input type="date" id="cap-date"></div>
+        <div class="fgroup"><label>Source / Description</label><input type="text" id="cap-desc" placeholder="Jaise: Owner Investment, Bank Loan..."></div>
+        <div class="fgroup"><label>Type</label>
+          <select id="cap-type">
+            <option value="invest">Capital Invest (Lagaya)</option>
+            <option value="withdraw">Capital Withdraw (Nikala)</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Amount (₹)</label><input type="number" id="cap-amt" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Account</label><select id="cap-acc"><option value="">Select Account</option></select></div>
+        <div class="fgroup"><label>&nbsp;</label><button class="btn bp" id="btn-cap">Add Entry</button></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Capital Entries</h3></div>
+      <table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Account</th><th>Amount</th><th>Del</th></tr></thead><tbody id="cap-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="page" id="pg-transactions">
+    <div class="page-header"><div><h2>Transactions</h2><p>Step 1: Business transactions record karo</p></div></div>
+    <div class="form-card">
+      <h3>+ Transaction Record Karo</h3>
+      <div class="fg3">
+        <div class="fgroup"><label>Date</label><input type="date" id="tx-date"></div>
+        <div class="fgroup"><label>Description</label><input type="text" id="tx-desc" placeholder="Kya hua batao..."></div>
+        <div class="fgroup"><label>Type</label>
+          <select id="tx-type">
+            <option value="income">Income (Aay)</option>
+            <option value="expense">Expense (Vyay)</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Category</label>
+          <select id="tx-cat">
+            <option value="Sales">Sales</option>
+            <option value="Purchase">Purchase</option>
+            <option value="Rent">Rent</option>
+            <option value="Electricity">Electricity</option>
+            <option value="Transport">Transport</option>
+            <option value="Salary">Salary</option>
+            <option value="Interest">Interest</option>
+            <option value="Commission">Commission</option>
+            <option value="Misc">Misc</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Account</label><select id="tx-acc"><option value="">Select Account</option></select></div>
+        <div class="fgroup"><label>Amount (₹)</label><input type="number" id="tx-amt" placeholder="0" min="0"></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn bp" id="btn-tx">Record Transaction</button></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>All Transactions</h3><span id="tx-totals" style="color:var(--accent);font-family:var(--fh)"></span></div>
+      <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Account</th><th>Type</th><th>Amount</th><th>Del</th></tr></thead><tbody id="tx-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- JOURNAL -->
+  <div class="page" id="pg-journal">
+    <div class="page-header"><div><h2>Journal Entry</h2><p>Step 2: Double entry — Debit / Credit</p></div></div>
+    <div class="form-card">
+      <h3>+ Entry Post Karo</h3>
+      <div class="fg2">
+        <div class="fgroup"><label>Date</label><input type="date" id="j-date"></div>
+        <div class="fgroup"><label>Narration</label><input type="text" id="j-narr" placeholder="Entry details..."></div>
+      </div>
+      <div class="fg5">
+        <div class="fgroup"><label>Account (Dr)</label><select id="j-dra"><option value="">Select</option></select></div>
+        <div class="fgroup"><label>Dr Amount (₹)</label><input type="number" id="j-damt" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Account (Cr)</label><select id="j-cra"><option value="">Select</option></select></div>
+        <div class="fgroup"><label>Cr Amount (₹)</label><input type="number" id="j-camt" placeholder="0" min="0"></div>
+        <button class="btn bp" id="btn-j">Post</button>
+      </div>
+    </div>
+    <div id="j-list"></div>
+  </div>
+
+  <!-- LEDGER -->
+  <div class="page" id="pg-ledger">
+    <div class="page-header"><div><h2>Ledger Posting</h2><p>Step 3: Account-wise income / expense posting</p></div></div>
+    <div class="form-card">
+      <h3>+ Ledger Entry</h3>
+      <div class="fg3">
+        <div class="fgroup"><label>Date</label><input type="date" id="l-date"></div>
+        <div class="fgroup"><label>Description</label><input type="text" id="l-desc" placeholder="Details..."></div>
+        <div class="fgroup"><label>Account</label><select id="l-acc"><option value="">Select Account</option></select></div>
+        <div class="fgroup"><label>Category</label>
+          <select id="l-cat"><option value="Sales">Sales</option><option value="Purchase">Purchase</option><option value="Rent">Rent</option><option value="Electricity">Electricity</option><option value="Transport">Transport</option><option value="Salary">Salary</option><option value="Interest">Interest</option><option value="Misc">Misc</option></select>
+        </div>
+        <div class="fgroup"><label>Type</label><select id="l-type"><option value="income">Income (Dr)</option><option value="expense">Expense (Cr)</option></select></div>
+        <div class="fgroup"><label>Amount (₹)</label><input type="number" id="l-amt" placeholder="0" min="0"></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn bp" id="btn-l">Post to Ledger</button></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Ledger Entries</h3><span id="l-tot" style="color:var(--accent);font-family:var(--fh)"></span></div>
+      <table><thead><tr><th>Date</th><th>Description</th><th>Account</th><th>Category</th><th>Type</th><th>Amount</th><th>Del</th></tr></thead><tbody id="l-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="page" id="pg-inventory">
+    <div class="page-header"><div><h2>Inventory / Stock</h2><p>Stock manage karo</p></div></div>
+    <div class="form-card">
+      <h3>+ Item Add Karo</h3>
+      <div class="fg3">
+        <div class="fgroup"><label>Item Name</label><input type="text" id="i-name" placeholder="Product naam"></div>
+        <div class="fgroup"><label>Unit</label><select id="i-unit"><option>Pcs</option><option>Kg</option><option>Litre</option><option>Box</option><option>Meter</option></select></div>
+        <div class="fgroup"><label>Quantity</label><input type="number" id="i-qty" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Buy Price (₹)</label><input type="number" id="i-buy" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Sell Price (₹)</label><input type="number" id="i-sell" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>&nbsp;</label><button class="btn bp" id="btn-i">Add Item</button></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Stock List</h3><span id="i-tot" style="color:var(--accent);font-family:var(--fh)"></span></div>
+      <table><thead><tr><th>Item</th><th>Unit</th><th>Qty</th><th>Buy</th><th>Sell</th><th>Stock Value</th><th>Del</th></tr></thead><tbody id="i-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- SALARY -->
+  <div class="page" id="pg-salary">
+    <div class="page-header"><div><h2>Staff Salary</h2><p>Employees record karo</p></div></div>
+    <div class="form-card">
+      <h3>+ Staff Add Karo</h3>
+      <div class="fg3">
+        <div class="fgroup"><label>Name</label><input type="text" id="s-name" placeholder="Employee naam"></div>
+        <div class="fgroup"><label>Role</label><input type="text" id="s-role" placeholder="Manager, Driver..."></div>
+        <div class="fgroup"><label>Basic (₹)</label><input type="number" id="s-bas" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Allowance (₹)</label><input type="number" id="s-all" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>Deduction (₹)</label><input type="number" id="s-ded" placeholder="0" min="0"></div>
+        <div class="fgroup"><label>&nbsp;</label><button class="btn bp" id="btn-s">Add Staff</button></div>
+      </div>
+    </div>
+    <div class="staff-grid" id="s-grid"><p style="color:var(--muted)">Koi staff nahi</p></div>
+  </div>
+
+  <!-- TRIAL BALANCE -->
+  <div class="page" id="pg-trialbalance">
+    <div class="page-header"><div><h2>Trial Balance</h2><p>Step 4: Dr aur Cr dono side barabar honi chahiye</p></div></div>
+    <div class="tb-section">
+      <div class="tb-title">📋 Trial Balance Statement</div>
+      <table>
+        <thead><tr><th>Account</th><th>Type</th><th style="text-align:right;color:var(--red)">Debit ₹</th><th style="text-align:right;color:var(--green)">Credit ₹</th></tr></thead>
+        <tbody id="tb-body"></tbody>
+        <tfoot><tr class="tb-total"><td colspan="2"><strong>TOTAL</strong></td><td style="text-align:right;color:var(--red)" id="tb-dr">₹0</td><td style="text-align:right;color:var(--green)" id="tb-cr">₹0</td></tr></tfoot>
+      </table>
+      <div class="tb-msg" id="tb-msg"></div>
+    </div>
+  </div>
+
+  <!-- P&L -->
+  <div class="page" id="pg-pnl">
+    <div class="page-header"><div><h2>Profit &amp; Loss Account</h2><p>Step 5: Aay minus Vyay = Net Profit/Loss</p></div></div>
+    <div class="cards-row-3">
+      <div class="stat-card ci"><div class="stat-label">Total Income (Cr)</div><div class="stat-value sg" id="pnl-inc">₹0</div></div>
+      <div class="stat-card ce"><div class="stat-label">Total Expense (Dr)</div><div class="stat-value sr" id="pnl-exp">₹0</div></div>
+      <div class="stat-card cw"><div class="stat-label">Net Profit / Loss</div><div class="stat-value" id="pnl-net">₹0</div></div>
+    </div>
+    <div class="pnl-section">
+      <div class="pnl-section-title">📊 Profit &amp; Loss Account</div>
+      <div class="pnl-grid">
+        <div class="pnl-col" style="border-right:1px solid var(--border)">
+          <div class="pnl-col-title" style="color:var(--red)">Dr (Expenses / Losses)</div>
+          <div id="pnl-dr-rows"></div>
+          <div class="pnl-total-row"><span>Total Expenses</span><span style="color:var(--red)" id="pnl-dr-tot">₹0</span></div>
+          <div class="pnl-total-row" id="pnl-profit-row" style="display:none"><span style="color:var(--green)">Net Profit c/d</span><span style="color:var(--green)" id="pnl-profit-val">₹0</span></div>
+        </div>
+        <div class="pnl-col">
+          <div class="pnl-col-title" style="color:var(--green)">Cr (Income / Revenue)</div>
+          <div id="pnl-cr-rows"></div>
+          <div class="pnl-total-row"><span>Total Income</span><span style="color:var(--green)" id="pnl-cr-tot">₹0</span></div>
+          <div class="pnl-total-row" id="pnl-loss-row" style="display:none"><span style="color:var(--red)">Net Loss c/d</span><span style="color:var(--red)" id="pnl-loss-val">₹0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BALANCE SHEET -->
+  <div class="page" id="pg-balancesheet">
+    <div class="page-header"><div><h2>Balance Sheet</h2><p>Step 6: Assets = Liabilities + Capital</p></div></div>
+    <div class="bs-grid">
+      <div class="bs-side">
+        <div class="bs-title bsl">⬅ Liabilities &amp; Capital</div>
+        <div class="bs-grp">Capital</div>
+        <div class="bs-row"><span>Capital Invested</span><span id="bs-cap">₹0</span></div>
+        <div class="bs-row"><span id="bs-pl-lbl">Add: Net Profit</span><span id="bs-pl-val">₹0</span></div>
+        <div class="bs-row bs-sub"><span>Total Capital</span><span id="bs-captot">₹0</span></div>
+        <div class="bs-grp">Current Liabilities</div>
+        <div class="bs-row"><span>Salary Payable</span><span id="bs-sal">₹0</span></div>
+        <div class="bs-row"><span>Creditors (Journal Cr)</span><span id="bs-cred">₹0</span></div>
+        <div class="bs-row bs-tot"><span>TOTAL LIABILITIES</span><span id="bs-ltot">₹0</span></div>
+      </div>
+      <div class="bs-side">
+        <div class="bs-title bsa">Assets ➡</div>
+        <div class="bs-grp">Fixed Assets</div>
+        <div class="bs-row"><span>Stock / Inventory</span><span id="bs-inv">₹0</span></div>
+        <div class="bs-grp">Current Assets</div>
+        <div class="bs-row"><span>Cash / Bank</span><span id="bs-cash">₹0</span></div>
+        <div class="bs-row"><span>Debtors (Journal Dr)</span><span id="bs-debt">₹0</span></div>
+        <div class="bs-row bs-tot"><span>TOTAL ASSETS</span><span id="bs-atot">₹0</span></div>
+      </div>
+    </div>
+    <div class="bs-check">
+      <div id="bs-chk" style="font-family:var(--fh);font-size:17px">—</div>
+      <div style="display:flex;gap:28px">
+        <div style="text-align:center"><div style="font-size:10px;color:var(--muted)">Total Assets</div><div style="font-family:var(--fh);font-size:18px;color:var(--green)" id="bs-ca">₹0</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--muted)">Total Liabilities</div><div style="font-family:var(--fh);font-size:18px;color:var(--red)" id="bs-cl">₹0</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+var DB={
+  accounts: JSON.parse(localStorage.getItem('mb_ac')||'[]'),
+  capital:  JSON.parse(localStorage.getItem('mb_cp')||'[]'),
+  txns:     JSON.parse(localStorage.getItem('mb_tx')||'[]'),
+  ledger:   JSON.parse(localStorage.getItem('mb_l') ||'[]'),
+  inv:      JSON.parse(localStorage.getItem('mb_i') ||'[]'),
+  staff:    JSON.parse(localStorage.getItem('mb_s') ||'[]'),
+  jnl:      JSON.parse(localStorage.getItem('mb_j') ||'[]')
+};
+function save(){
+  localStorage.setItem('mb_ac',JSON.stringify(DB.accounts));
+  localStorage.setItem('mb_cp',JSON.stringify(DB.capital));
+  localStorage.setItem('mb_tx',JSON.stringify(DB.txns));
+  localStorage.setItem('mb_l', JSON.stringify(DB.ledger));
+  localStorage.setItem('mb_i', JSON.stringify(DB.inv));
+  localStorage.setItem('mb_s', JSON.stringify(DB.staff));
+  localStorage.setItem('mb_j', JSON.stringify(DB.jnl));
+}
+function uid(){return Date.now()+Math.floor(Math.random()*9999);}
+function fmt(n){return '₹'+Number(n||0).toLocaleString('en-IN');}
+function el(id){return document.getElementById(id);}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+
+// ── CLOCK & GREETING ─────────────────────────────────
+function getGreeting(){
+  var h=new Date().getHours();
+  if(h>=5&&h<12) return {text:'Good Morning!',emoji:'🌅',sub:'Aaj ka din productive ho 🙏',side:'Good Morning ☀️'};
+  if(h>=12&&h<17) return {text:'Good Afternoon!',emoji:'☀️',sub:'Kaam mein lage raho 💪',side:'Good Afternoon ☀️'};
+  if(h>=17&&h<21) return {text:'Good Evening!',emoji:'🌆',sub:'Kal ke liye plan karo 📋',side:'Good Evening 🌆'};
+  return {text:'Good Night!',emoji:'🌙',sub:'Aaram karo, kal phir mehnat 💤',side:'Good Night 🌙'};
+}
+function updateClock(){
+  var now=new Date();
+  var h=String(now.getHours()).padStart(2,'0');
+  var m=String(now.getMinutes()).padStart(2,'0');
+  var s=String(now.getSeconds()).padStart(2,'0');
+  el('clock').textContent=h+':'+m+':'+s;
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  el('datestr').textContent=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  var g=getGreeting();
+  el('greet-side').textContent=g.side;
+  el('greet-main').textContent=g.text;
+  el('greet-sub').textContent=g.sub;
+  el('greet-emoji').textContent=g.emoji;
+  el('greet-time2').textContent='Time: '+h+':'+m+':'+s;
+}
+updateClock();
+setInterval(updateClock,1000);
+
+// ── NAV ──────────────────────────────────────────────
+var pgFns={dashboard:rDash,accounts:rAccounts,capital:rCapital,transactions:rTxns,journal:rJnl,ledger:rLedger,inventory:rInv,salary:rStaff,trialbalance:rTB,pnl:rPnL,balancesheet:rBS};
+el('sidenav').addEventListener('click',function(e){
+  var item=e.target.closest('[data-pg]');
+  if(!item)return;
+  var pg=item.getAttribute('data-pg');
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  item.classList.add('active');
+  el('pg-'+pg).classList.add('active');
+  if(pgFns[pg])pgFns[pg]();
+});
+
+// ── DELETE DELEGATION ─────────────────────────────────
+document.body.addEventListener('click',function(e){
+  var btn=e.target.closest('[data-act]');
+  if(!btn)return;
+  var act=btn.getAttribute('data-act'),id=Number(btn.getAttribute('data-id'));
+  if(act==='dac'){DB.accounts=DB.accounts.filter(function(x){return x.id!==id;});save();rAccounts();populateAccDrops();}
+  if(act==='dcp'){DB.capital=DB.capital.filter(function(x){return x.id!==id;});save();rCapital();}
+  if(act==='dtx'){DB.txns=DB.txns.filter(function(x){return x.id!==id;});save();rTxns();rDash();}
+  if(act==='dl'){DB.ledger=DB.ledger.filter(function(x){return x.id!==id;});save();rLedger();rDash();}
+  if(act==='di'){DB.inv=DB.inv.filter(function(x){return x.id!==id;});save();rInv();}
+  if(act==='ds'){DB.staff=DB.staff.filter(function(x){return x.id!==id;});save();rStaff();}
+  if(act==='dj'){DB.jnl=DB.jnl.filter(function(x){return x.id!==id;});save();rJnl();}
+});
+
+// ── ACCOUNTS ─────────────────────────────────────────
+var accColors={Asset:'var(--green)',Liability:'var(--red)',Capital:'#a78bfa',Income:'var(--accent)',Expense:'var(--accent2)'};
+el('btn-ac').addEventListener('click',function(){
+  var name=el('ac-name').value.trim(),type=el('ac-type').value,bal=parseFloat(el('ac-bal').value)||0,code=el('ac-code').value.trim(),desc=el('ac-desc').value.trim();
+  if(!name){alert('Account naam daalo!');return;}
+  DB.accounts.push({id:uid(),name:name,type:type,bal:bal,code:code,desc:desc});
+  save();el('ac-name').value='';el('ac-bal').value='';el('ac-code').value='';el('ac-desc').value='';
+  rAccounts();populateAccDrops();
+});
+function rAccounts(){
+  var g=el('acc-grid');
+  if(!DB.accounts.length){g.innerHTML='<p style="color:var(--muted)">Koi account nahi bana abhi</p>';return;}
+  g.innerHTML=DB.accounts.map(function(a){
+    return '<div class="acc-card">'+
+      '<span class="acc-type-badge" style="background:'+accColors[a.type]+'22;color:'+accColors[a.type]+'">'+a.type+'</span>'+
+      '<div class="acc-name">'+a.name+'</div>'+
+      '<div class="acc-code">'+(a.code||'—')+' '+(a.desc?'· '+a.desc:'')+'</div>'+
+      '<div class="acc-bal" style="color:'+accColors[a.type]+'">'+fmt(a.bal)+'</div>'+
+      '<div style="margin-top:12px"><button class="btn bd bsm" data-act="dac" data-id="'+a.id+'">Delete</button></div>'+
+      '</div>';
+  }).join('');
+}
+function populateAccDrops(){
+  var opts='<option value="">Select Account</option>'+DB.accounts.map(function(a){return '<option value="'+a.name+'">'+a.name+' ('+a.type+')</option>';}).join('');
+  var dropsIds=['cap-acc','tx-acc','l-acc'];
+  dropsIds.forEach(function(id){if(el(id))el(id).innerHTML=opts;});
+  var jOpts='<option value="">Select</option>'+DB.accounts.map(function(a){return '<option value="'+a.name+'">'+a.name+'</option>';}).join('');
+  if(el('j-dra'))el('j-dra').innerHTML=jOpts;
+  if(el('j-cra'))el('j-cra').innerHTML=jOpts;
+}
+
+// ── CAPITAL ───────────────────────────────────────────
+el('btn-cap').addEventListener('click',function(){
+  var date=el('cap-date').value,desc=el('cap-desc').value.trim(),type=el('cap-type').value,amt=parseFloat(el('cap-amt').value),acc=el('cap-acc').value;
+  if(!date||!desc||!amt||amt<=0){alert('Sab fields bharo!');return;}
+  DB.capital.push({id:uid(),date:date,desc:desc,type:type,amt:amt,acc:acc});
+  save();el('cap-desc').value='';el('cap-amt').value='';rCapital();rDash();
+});
+function rCapital(){
+  var total=DB.capital.filter(function(x){return x.type==='invest';}).reduce(function(a,b){return a+b.amt;},0);
+  var withdraw=DB.capital.filter(function(x){return x.type==='withdraw';}).reduce(function(a,b){return a+b.amt;},0);
+  var net=total-withdraw;
+  var inc=DB.ledger.filter(function(x){return x.type==='income';}).reduce(function(a,b){return a+b.amt;},0);
+  var exp=DB.ledger.filter(function(x){return x.type==='expense';}).reduce(function(a,b){return a+b.amt;},0);
+  var pnl=inc-exp;
+  el('cap-total').textContent=fmt(net);
+  el('cap-pnl').textContent=(pnl>=0?'+':'')+fmt(pnl);el('cap-pnl').style.color=pnl>=0?'var(--green)':'var(--red)';
+  el('cap-net').textContent=fmt(net+pnl);
+  var tb=el('cap-body');
+  if(!DB.capital.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Koi entry nahi</td></tr>';return;}
+  tb.innerHTML=DB.capital.slice().reverse().map(function(c){
+    return '<tr><td>'+c.date+'</td><td>'+c.desc+'</td><td><span class="badge '+(c.type==='invest'?'bi':'be')+'">'+(c.type==='invest'?'Invest':'Withdraw')+'</span></td><td>'+(c.acc||'—')+'</td><td style="color:'+(c.type==='invest'?'var(--green)':'var(--red)')+';font-weight:600">'+fmt(c.amt)+'</td><td><button class="btn bd bsm" data-act="dcp" data-id="'+c.id+'">Del</button></td></tr>';
+  }).join('');
+}
+
+// ── TRANSACTIONS ──────────────────────────────────────
+el('btn-tx').addEventListener('click',function(){
+  var date=el('tx-date').value,desc=el('tx-desc').value.trim(),type=el('tx-type').value,cat=el('tx-cat').value,acc=el('tx-acc').value,amt=parseFloat(el('tx-amt').value);
+  if(!date||!desc||!amt||amt<=0){alert('Sab fields bharo!');return;}
+  DB.txns.push({id:uid(),date:date,desc:desc,type:type,cat:cat,acc:acc,amt:amt});
+  save();el('tx-desc').value='';el('tx-amt').value='';rTxns();rDash();
+});
+function rTxns(){
+  var tb=el('tx-body');
+  if(!DB.txns.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Koi transaction nahi</td></tr>';el('tx-totals').textContent='';return;}
+  var inc=0,exp=0;
+  tb.innerHTML=DB.txns.slice().reverse().map(function(t){
+    if(t.type==='income')inc+=t.amt;else exp+=t.amt;
+    return '<tr><td>'+t.date+'</td><td>'+t.desc+'</td><td>'+t.cat+'</td><td>'+(t.acc||'—')+'</td><td><span class="badge '+(t.type==='income'?'bi':'be')+'">'+(t.type==='income'?'Income':'Expense')+'</span></td><td style="color:'+(t.type==='income'?'var(--green)':'var(--red)')+';font-weight:600">'+fmt(t.amt)+'</td><td><button class="btn bd bsm" data-act="dtx" data-id="'+t.id+'">Del</button></td></tr>';
+  }).join('');
+  el('tx-totals').textContent='Income: '+fmt(inc)+' | Expense: '+fmt(exp);
+}
+
+// ── JOURNAL ───────────────────────────────────────────
+el('btn-j').addEventListener('click',function(){
+  var date=el('j-date').value,narr=el('j-narr').value.trim(),dra=el('j-dra').value,damt=parseFloat(el('j-damt').value)||0,cra=el('j-cra').value,camt=parseFloat(el('j-camt').value)||0;
+  if(!date||!dra||!cra||damt<=0){alert('Sab fields bharo!');return;}
+  if(damt!==camt){alert('Debit aur Credit barabar hone chahiye!');return;}
+  DB.jnl.push({id:uid(),date:date,narr:narr,dra:dra,damt:damt,cra:cra,camt:camt});
+  save();el('j-narr').value='';el('j-damt').value='';el('j-camt').value='';rJnl();
+});
+function rJnl(){
+  var e=el('j-list');
+  if(!DB.jnl.length){e.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Koi journal entry nahi</div>';return;}
+  e.innerHTML=DB.jnl.slice().reverse().map(function(j){
+    return '<div class="jentry"><div class="jhead"><span style="font-family:var(--fh);font-size:15px">Journal #'+String(j.id).slice(-4)+'</span><div style="display:flex;gap:10px;align-items:center"><span style="font-size:12px;color:var(--muted)">'+j.date+'</span><button class="btn bd bsm" data-act="dj" data-id="'+j.id+'">Del</button></div></div><div style="font-size:13px;margin-bottom:10px;color:var(--muted)">'+(j.narr||'—')+'</div><table class="jtable"><tr><th>Account</th><th>Debit</th><th>Credit</th></tr><tr><td class="jdr">Dr. '+j.dra+'</td><td class="jdr">'+fmt(j.damt)+'</td><td>—</td></tr><tr><td class="jcr">Cr. '+j.cra+'</td><td>—</td><td class="jcr">'+fmt(j.camt)+'</td></tr></table></div>';
+  }).join('');
+}
+
+// ── LEDGER ────────────────────────────────────────────
+el('btn-l').addEventListener('click',function(){
+  var date=el('l-date').value,desc=el('l-desc').value.trim(),acc=el('l-acc').value,cat=el('l-cat').value,type=el('l-type').value,amt=parseFloat(el('l-amt').value);
+  if(!date||!desc||!amt||amt<=0){alert('Sab fields bharo!');return;}
+  DB.ledger.push({id:uid(),date:date,desc:desc,acc:acc,cat:cat,type:type,amt:amt});
+  save();el('l-desc').value='';el('l-amt').value='';rLedger();rDash();
+});
+function rLedger(){
+  var tb=el('l-body');
+  if(!DB.ledger.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Koi entry nahi</td></tr>';el('l-tot').textContent='';return;}
+  var inc=0,exp=0;
+  tb.innerHTML=DB.ledger.slice().reverse().map(function(e){
+    if(e.type==='income')inc+=e.amt;else exp+=e.amt;
+    return '<tr><td>'+e.date+'</td><td>'+e.desc+'</td><td>'+(e.acc||'—')+'</td><td>'+e.cat+'</td><td><span class="badge '+(e.type==='income'?'bi':'be')+'">'+(e.type==='income'?'Income':'Expense')+'</span></td><td style="color:'+(e.type==='income'?'var(--green)':'var(--red)')+';font-weight:600">'+fmt(e.amt)+'</td><td><button class="btn bd bsm" data-act="dl" data-id="'+e.id+'">Del</button></td></tr>';
+  }).join('');
+  el('l-tot').textContent='Income: '+fmt(inc)+' | Expense: '+fmt(exp);
+}
+
+// ── INVENTORY ─────────────────────────────────────────
+el('btn-i').addEventListener('click',function(){
+  var name=el('i-name').value.trim(),unit=el('i-unit').value,qty=parseFloat(el('i-qty').value)||0,buy=parseFloat(el('i-buy').value)||0,sell=parseFloat(el('i-sell').value)||0;
+  if(!name){alert('Item naam daalo!');return;}
+  DB.inv.push({id:uid(),name:name,unit:unit,qty:qty,buy:buy,sell:sell});
+  save();el('i-name').value='';el('i-qty').value='';el('i-buy').value='';el('i-sell').value='';rInv();
+});
+function rInv(){
+  var tb=el('i-body'),tot=0;
+  if(!DB.inv.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Koi item nahi</td></tr>';el('i-tot').textContent='';return;}
+  tb.innerHTML=DB.inv.map(function(i){tot+=i.qty*i.buy;return '<tr><td><strong>'+i.name+'</strong></td><td>'+i.unit+'</td><td>'+i.qty+'</td><td>'+fmt(i.buy)+'</td><td>'+fmt(i.sell)+'</td><td style="color:var(--accent);font-weight:600">'+fmt(i.qty*i.buy)+'</td><td><button class="btn bd bsm" data-act="di" data-id="'+i.id+'">Del</button></td></tr>';}).join('');
+  el('i-tot').textContent='Total Value: '+fmt(tot);
+}
+
+// ── STAFF ─────────────────────────────────────────────
+el('btn-s').addEventListener('click',function(){
+  var name=el('s-name').value.trim(),role=el('s-role').value.trim(),bas=parseFloat(el('s-bas').value)||0,all=parseFloat(el('s-all').value)||0,ded=parseFloat(el('s-ded').value)||0;
+  if(!name){alert('Naam daalo!');return;}
+  DB.staff.push({id:uid(),name:name,role:role,bas:bas,all:all,ded:ded});
+  save();el('s-name').value='';el('s-role').value='';el('s-bas').value='';el('s-all').value='';el('s-ded').value='';rStaff();
+});
+function rStaff(){
+  var g=el('s-grid');
+  if(!DB.staff.length){g.innerHTML='<p style="color:var(--muted)">Koi staff nahi</p>';return;}
+  g.innerHTML=DB.staff.map(function(s){
+    var net=s.bas+s.all-s.ded;
+    return '<div class="staff-card"><div class="sname">'+s.name+'</div><div class="srole">'+(s.role||'—')+'</div><div class="srow"><span>Basic</span><span>'+fmt(s.bas)+'</span></div><div class="srow"><span>Allowance</span><span>'+fmt(s.all)+'</span></div><div class="srow"><span>Deduction</span><span style="color:var(--red)">- '+fmt(s.ded)+'</span></div><div class="srow" style="border-top:1px solid var(--border);padding-top:8px;margin-top:6px"><span><strong>Net Salary</strong></span><span style="color:var(--green);font-size:15px">'+fmt(net)+'</span></div><div style="margin-top:12px"><button class="btn bd bsm" data-act="ds" data-id="'+s.id+'">Remove</button></div></div>';
+  }).join('');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────
+function rDash(){
+  var inc=allIncome(),exp=allExpense(),pnl=inc-exp;
+  var cap=DB.capital.filter(function(x){return x.type==='invest';}).reduce(function(a,b){return a+b.amt;},0)-DB.capital.filter(function(x){return x.type==='withdraw';}).reduce(function(a,b){return a+b.amt;},0);
+  el('d-cap').textContent=fmt(cap);
+  el('d-inc').textContent=fmt(inc);el('d-exp').textContent=fmt(exp);
+  el('d-acc').textContent=DB.accounts.length;el('d-stk').textContent=DB.inv.length;el('d-stf').textContent=DB.staff.length;el('d-jen').textContent=DB.jnl.length;
+  var pe=el('d-pnl');pe.textContent=(pnl<0?'- ':'')+fmt(Math.abs(pnl));pe.style.color=pnl>=0?'var(--green)':'var(--red)';
+  // Cycle
+  var steps=[{name:'Understanding Transactions',pg:'transactions',done:DB.txns.length>0},{name:'Journal Entry',pg:'journal',done:DB.jnl.length>0},{name:'Ledger Posting',pg:'ledger',done:DB.ledger.length>0},{name:'Trial Balance',pg:'trialbalance',done:DB.ledger.length>0},{name:'Profit & Loss Account',pg:'pnl',done:DB.ledger.length>0},{name:'Balance Sheet',pg:'balancesheet',done:DB.ledger.length>0}];
+  var cf=el('cycle-flow');
+  cf.innerHTML=steps.map(function(s,i){return (i>0?'<div class="cycle-arrow">▼</div>':'')+' <div class="cycle-step'+(s.done?' done':'')+'\" data-pg="'+s.pg+'">'+(s.done?'✅ ':'')+s.name+'</div>';}).join('');
+  // Cycle nav
+  cf.querySelectorAll('.cycle-step').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var pg=btn.getAttribute('data-pg');
+      document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+      var ni=document.querySelector('[data-pg="'+pg+'"]');if(ni)ni.classList.add('active');
+      el('pg-'+pg).classList.add('active');
+      if(pgFns[pg])pgFns[pg]();
+    });
+  });
+  // Recent
+  var all=DB.ledger.concat(DB.txns).sort(function(a,b){return b.id-a.id;}).slice(0,6);
+  el('d-rec').innerHTML=all.length?all.map(function(e){return '<tr><td>'+e.date+'</td><td>'+e.desc+'</td><td>'+(e.acc||e.cat||'—')+'</td><td><span class="badge '+(e.type==='income'?'bi':'be')+'">'+(e.type==='income'?'Income':'Expense')+'</span></td><td style="color:'+(e.type==='income'?'var(--green)':'var(--red)')+';font-weight:600">'+fmt(e.amt)+'</td></tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Koi entry nahi</td></tr>';
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function allIncome(){return DB.ledger.filter(function(x){return x.type==='income';}).reduce(function(a,b){return a+b.amt;},0)+DB.txns.filter(function(x){return x.type==='income';}).reduce(function(a,b){return a+b.amt;},0);}
+function allExpense(){return DB.ledger.filter(function(x){return x.type==='expense';}).reduce(function(a,b){return a+b.amt;},0)+DB.txns.filter(function(x){return x.type==='expense';}).reduce(function(a,b){return a+b.amt;},0);}
+
+// ── TRIAL BALANCE ─────────────────────────────────────
+function rTB(){
+  var acc={};
+  function add(name,type,dr,cr){if(!acc[name])acc[name]={type:type,dr:0,cr:0};acc[name].dr+=dr;acc[name].cr+=cr;}
+  DB.jnl.forEach(function(j){add(j.dra,'Journal',j.damt,0);add(j.cra,'Journal',0,j.camt);});
+  DB.ledger.forEach(function(e){if(e.type==='income')add((e.acc||e.cat),'Income',0,e.amt);else add((e.acc||e.cat),'Expense',e.amt,0);});
+  DB.txns.forEach(function(t){if(t.type==='income')add((t.acc||t.cat),'Income',0,t.amt);else add((t.acc||t.cat),'Expense',t.amt,0);});
+  var sal=DB.staff.reduce(function(a,s){return a+(s.bas+s.all-s.ded);},0);
+  if(sal>0){add('Salary Expense','Expense',sal,0);add('Salary Payable','Liability',0,sal);}
+  var stk=DB.inv.reduce(function(a,i){return a+(i.qty*i.buy);},0);
+  if(stk>0)add('Inventory/Stock','Asset',stk,0);
+  var cap=DB.capital.filter(function(x){return x.type==='invest';}).reduce(function(a,b){return a+b.amt;},0);
+  if(cap>0)add('Capital','Capital',0,cap);
+  var keys=Object.keys(acc).filter(function(k){return acc[k].dr>0||acc[k].cr>0;});
+  var tb=el('tb-body');
+  if(!keys.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Pehle koi entry daalo</td></tr>';el('tb-dr').textContent='₹0';el('tb-cr').textContent='₹0';el('tb-msg').innerHTML='';return;}
+  var tdr=0,tcr=0;
+  tb.innerHTML=keys.map(function(k){var a=acc[k];tdr+=a.dr;tcr+=a.cr;return '<tr><td><strong>'+k+'</strong></td><td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.05);color:var(--muted)">'+a.type+'</span></td><td style="text-align:right;color:'+(a.dr>0?'var(--red)':'var(--muted)')+'">'+(a.dr>0?fmt(a.dr):'—')+'</td><td style="text-align:right;color:'+(a.cr>0?'var(--green)':'var(--muted)')+'">'+(a.cr>0?fmt(a.cr):'—')+'</td></tr>';}).join('');
+  el('tb-dr').textContent=fmt(tdr);el('tb-cr').textContent=fmt(tcr);
+  el('tb-msg').innerHTML=Math.abs(tdr-tcr)<0.01?'✅ <span style="color:var(--green)">Trial Balance Match! Books Balanced.</span>':'⚠️ <span style="color:var(--accent2)">Difference: '+fmt(Math.abs(tdr-tcr))+'</span>';
+}
+
+// ── P&L ───────────────────────────────────────────────
+function rPnL(){
+  var inc=allIncome(),exp=allExpense(),pnl=inc-exp;
+  el('pnl-inc').textContent=fmt(inc);el('pnl-exp').textContent=fmt(exp);
+  var ne=el('pnl-net');ne.textContent=(pnl>=0?'Profit: ':'Loss: ')+fmt(Math.abs(pnl));ne.style.color=pnl>=0?'var(--green)':'var(--red)';
+  // Dr side (expenses)
+  var cats={};
+  var allExp=DB.ledger.filter(function(x){return x.type==='expense';}).concat(DB.txns.filter(function(x){return x.type==='expense';}));
+  allExp.forEach(function(e){if(!cats[e.cat||e.acc])cats[e.cat||e.acc]=0;cats[e.cat||e.acc]+=e.amt;});
+  var sal=DB.staff.reduce(function(a,s){return a+(s.bas+s.all-s.ded);},0);
+  if(sal>0){if(!cats['Salary'])cats['Salary']=0;cats['Salary']+=sal;}
+  var drRows=Object.keys(cats).map(function(k){return '<div class="pnl-row"><span>'+k+'</span><span style="color:var(--red)">'+fmt(cats[k])+'</span></div>';}).join('');
+  el('pnl-dr-rows').innerHTML=drRows||'<div class="pnl-row" style="color:var(--muted)">Koi expense nahi</div>';
+  el('pnl-dr-tot').textContent=fmt(exp+sal);
+  // Cr side (income)
+  var icats={};
+  var allInc=DB.ledger.filter(function(x){return x.type==='income';}).concat(DB.txns.filter(function(x){return x.type==='income';}));
+  allInc.forEach(function(e){if(!icats[e.cat||e.acc])icats[e.cat||e.acc]=0;icats[e.cat||e.acc]+=e.amt;});
+  var crRows=Object.keys(icats).map(function(k){return '<div class="pnl-row"><span>'+k+'</span><span style="color:var(--green)">'+fmt(icats[k])+'</span></div>';}).join('');
+  el('pnl-cr-rows').innerHTML=crRows||'<div class="pnl-row" style="color:var(--muted)">Koi income nahi</div>';
+  el('pnl-cr-tot').textContent=fmt(inc);
+  if(pnl>=0){el('pnl-profit-row').style.display='flex';el('pnl-profit-val').textContent=fmt(pnl);el('pnl-loss-row').style.display='none';}
+  else{el('pnl-loss-row').style.display='flex';el('pnl-loss-val').textContent=fmt(Math.abs(pnl));el('pnl-profit-row').style.display='none';}
+}
+
+// ── BALANCE SHEET ─────────────────────────────────────
+function rBS(){
+  var inc=allIncome(),exp=allExpense(),pnl=inc-exp;
+  var capInv=DB.capital.filter(function(x){return x.type==='invest';}).reduce(function(a,b){return a+b.amt;},0);
+  var sal=DB.staff.reduce(function(a,s){return a+(s.bas+s.all-s.ded);},0);
+  var stk=DB.inv.reduce(function(a,i){return a+(i.qty*i.buy);},0);
+  var jdr=DB.jnl.reduce(function(a,j){return a+j.damt;},0),jcr=DB.jnl.reduce(function(a,j){return a+j.camt;},0);
+  var cash=Math.max(inc-exp,0),tLiab=capInv+pnl+sal+jcr,tAss=stk+cash+jdr;
+  el('bs-cap').textContent=fmt(capInv);
+  el('bs-pl-lbl').textContent=pnl>=0?'Add: Net Profit':'Less: Net Loss';
+  el('bs-pl-val').textContent=(pnl<0?'- ':'')+fmt(Math.abs(pnl));el('bs-pl-val').style.color=pnl>=0?'var(--green)':'var(--red)';
+  el('bs-captot').textContent=fmt(capInv+pnl);
+  el('bs-sal').textContent=fmt(sal);el('bs-cred').textContent=fmt(jcr);el('bs-ltot').textContent=fmt(tLiab);
+  el('bs-inv').textContent=fmt(stk);el('bs-cash').textContent=fmt(cash);el('bs-debt').textContent=fmt(jdr);el('bs-atot').textContent=fmt(tAss);
+  el('bs-ca').textContent=fmt(tAss);el('bs-cl').textContent=fmt(tLiab);
+  el('bs-chk').innerHTML=Math.abs(tAss-tLiab)<1?'✅ <span style="color:var(--green)">Balanced! Assets = Liabilities</span>':'⚠️ <span style="color:var(--accent2)">Difference: '+fmt(Math.abs(tAss-tLiab))+'</span>';
+}
+
+// ── DOWNLOAD REPORT ───────────────────────────────────
+el('btn-download').addEventListener('click',function(){
+  var inc=allIncome(),exp=allExpense(),pnl=inc-exp;
+  var cap=DB.capital.filter(function(x){return x.type==='invest';}).reduce(function(a,b){return a+b.amt;},0);
+  var now=new Date().toLocaleString('en-IN');
+  var g=getGreeting();
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>MyBooks Report</title><style>body{font-family:Arial,sans-serif;padding:30px;background:#fff;color:#111;}h1{color:#1a1e2e;border-bottom:3px solid #4f8ef7;padding-bottom:10px;}h2{color:#4f8ef7;margin-top:24px;font-size:16px;border-left:4px solid #4f8ef7;padding-left:10px;}table{width:100%;border-collapse:collapse;margin:10px 0;}th{background:#f0f4ff;padding:8px 12px;text-align:left;font-size:12px;color:#555;border:1px solid #ddd;}td{padding:8px 12px;border:1px solid #ddd;font-size:13px;}.green{color:#059669;}.red{color:#dc2626;}.header-info{background:#f8faff;padding:16px;border-radius:8px;margin-bottom:20px;}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;}.sum-box{background:#f0f4ff;border-radius:8px;padding:12px;text-align:center;}.sum-label{font-size:11px;color:#666;text-transform:uppercase;}.sum-val{font-size:20px;font-weight:700;margin-top:4px;}</style></head><body>';
+  html+='<h1>📊 MyBooks — Company Accounts Report</h1>';
+  html+='<div class="header-info"><strong>Report Generated:</strong> '+now+'<br><strong>'+g.text+'</strong></div>';
+  html+='<div class="summary-grid">';
+  html+='<div class="sum-box"><div class="sum-label">Capital</div><div class="sum-val" style="color:#7c3aed">'+fmt(cap)+'</div></div>';
+  html+='<div class="sum-box"><div class="sum-label">Total Income</div><div class="sum-val green">'+fmt(inc)+'</div></div>';
+  html+='<div class="sum-box"><div class="sum-label">Total Expense</div><div class="sum-val red">'+fmt(exp)+'</div></div>';
+  html+='<div class="sum-box"><div class="sum-label">Net '+(pnl>=0?'Profit':'Loss')+'</div><div class="sum-val '+(pnl>=0?'green':'red')+'">'+fmt(Math.abs(pnl))+'</div></div>';
+  html+='</div>';
+  // P&L
+  html+='<h2>Profit &amp; Loss Account</h2><table><tr><th>Dr (Expenses)</th><th>Amount</th><th>Cr (Income)</th><th>Amount</th></tr>';
+  var allExpArr=DB.ledger.filter(function(x){return x.type==='expense';}).concat(DB.txns.filter(function(x){return x.type==='expense';}));
+  var allIncArr=DB.ledger.filter(function(x){return x.type==='income';}).concat(DB.txns.filter(function(x){return x.type==='income';}));
+  var maxLen=Math.max(allExpArr.length,allIncArr.length);
+  for(var i=0;i<maxLen;i++){
+    var eRow=allExpArr[i],iRow=allIncArr[i];
+    html+='<tr><td>'+(eRow?eRow.desc:'')+'</td><td class="red">'+(eRow?fmt(eRow.amt):'')+'</td><td>'+(iRow?iRow.desc:'')+'</td><td class="green">'+(iRow?fmt(iRow.amt):'')+'</td></tr>';
+  }
+  html+='<tr><th>Net '+(pnl>=0?'Profit':'Loss')+' c/d</th><th class="'+(pnl>=0?'green':'red')+'">'+fmt(Math.abs(pnl))+'</th><th>Total Income</th><th class="green">'+fmt(inc)+'</th></tr></table>';
+  // Journal
+  if(DB.jnl.length){html+='<h2>Journal Entries</h2><table><tr><th>Date</th><th>Narration</th><th>Dr Account</th><th>Dr Amt</th><th>Cr Account</th><th>Cr Amt</th></tr>';html+=DB.jnl.map(function(j){return '<tr><td>'+j.date+'</td><td>'+(j.narr||'—')+'</td><td>'+j.dra+'</td><td class="red">'+fmt(j.damt)+'</td><td>'+j.cra+'</td><td class="green">'+fmt(j.camt)+'</td></tr>';}).join('');html+='</table>';}
+  // Staff
+  if(DB.staff.length){html+='<h2>Staff Salary</h2><table><tr><th>Name</th><th>Role</th><th>Basic</th><th>Allowance</th><th>Deduction</th><th>Net Salary</th></tr>';html+=DB.staff.map(function(s){return '<tr><td>'+s.name+'</td><td>'+(s.role||'—')+'</td><td>'+fmt(s.bas)+'</td><td>'+fmt(s.all)+'</td><td class="red">'+fmt(s.ded)+'</td><td class="green"><strong>'+fmt(s.bas+s.all-s.ded)+'</strong></td></tr>';}).join('');html+='</table>';}
+  // Inventory
+  if(DB.inv.length){html+='<h2>Inventory / Stock</h2><table><tr><th>Item</th><th>Unit</th><th>Qty</th><th>Buy Price</th><th>Sell Price</th><th>Stock Value</th></tr>';html+=DB.inv.map(function(i){return '<tr><td>'+i.name+'</td><td>'+i.unit+'</td><td>'+i.qty+'</td><td>'+fmt(i.buy)+'</td><td>'+fmt(i.sell)+'</td><td><strong>'+fmt(i.qty*i.buy)+'</strong></td></tr>';}).join('');html+='</table>';}
+  html+='<br><hr><p style="color:#999;font-size:12px;text-align:center">Generated by MyBooks · '+now+'</p></body></html>';
+  var blob=new Blob([html],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='MyBooks_Report_'+todayStr()+'.html';
+  a.click();
+});
+
+// ── INIT ─────────────────────────────────────────────
+el('l-date').value=todayStr();
+el('j-date').value=todayStr();
+el('tx-date').value=todayStr();
+el('cap-date').value=todayStr();
+populateAccDrops();
+rDash();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+</script>
+</body>
+</html>
