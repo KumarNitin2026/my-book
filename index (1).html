@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyBooks - Company Accounts</title>
+<meta name="theme-color" content="#0d0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MyBooks">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- FIREBASE SDK v9 COMPAT (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ✅ FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyAiDf0a4SF5_MeLaTl5dRTzjw8L-06s5q0",
+  authDomain: "mybook-app-71f79.firebaseapp.com",
+  projectId: "mybook-app-71f79",
+  storageBucket: "mybook-app-71f79.firebasestorage.app",
+  messagingSenderId: "713252973517",
+  appId: "1:713252973517:web:8a9685bfca9675dc843284"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+</script>
+
+<style>
+:root{--bg:#0d0f14;--surface:#141720;--card:#1a1e2e;--border:#252a3d;--accent:#4f8ef7;--accent2:#f7c94f;--green:#3ecf8e;--red:#f76f6f;--text:#e8eaf0;--muted:#6b7280;--fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at center,#1a1e2e 0%,#0d0f14 70%);}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;width:400px;max-width:95vw;text-align:center;}
+.login-logo{font-size:44px;margin-bottom:10px;}
+.login-box h1{font-family:var(--fh);font-size:26px;color:var(--accent);margin-bottom:4px;}
+.login-box p{color:var(--muted);font-size:13px;margin-bottom:24px;}
+.login-tabs{display:flex;margin-bottom:20px;background:#0f1118;border-radius:10px;padding:4px;}
+.login-tab{flex:1;padding:8px;border-radius:8px;cursor:pointer;font-family:var(--fh);font-size:14px;font-weight:600;color:var(--muted);border:none;background:transparent;transition:all .2s;}
+.login-tab.active{background:var(--accent);color:#fff;}
+.lform{display:flex;flex-direction:column;gap:12px;}
+.lform input{background:#0f1118;border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:14px;font-family:var(--fb);outline:none;width:100%;}
+.lform input:focus{border-color:var(--accent);}
+.btn-login{background:var(--accent);color:#fff;border:none;padding:12px;border-radius:10px;font-family:var(--fh);font-size:16px;font-weight:700;cursor:pointer;width:100%;margin-top:2px;}
+.btn-google{background:#fff;color:#333;border:1px solid #ddd;padding:11px;border-radius:10px;font-family:var(--fh);font-size:14px;font-weight:600;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;}
+.ldiv{color:var(--muted);font-size:12px;margin:6px 0;}
+.lerr{background:rgba(247,111,111,.1);border:1px solid rgba(247,111,111,.3);color:var(--red);padding:10px;border-radius:8px;font-size:13px;display:none;margin-bottom:8px;}
+
+/* APP */
+#app{display:none;}
+#app.show{display:flex;}
+.sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto;}
+.logo{padding:16px 20px;border-bottom:1px solid var(--border);}
+.logo h1{font-family:var(--fh);font-size:19px;color:var(--accent);}
+.clk{font-family:var(--fh);font-size:20px;font-weight:700;margin-top:6px;}
+.dstr{font-size:11px;color:var(--muted);margin-top:2px;}
+.gstr{font-size:12px;color:var(--accent2);margin-top:3px;font-weight:600;}
+.uinfo{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.uavt{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.uname{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.uemail{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-out{margin:8px 16px;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--red);font-family:var(--fh);font-size:13px;font-weight:600;cursor:pointer;width:calc(100% - 32px);}
+.nav{flex:1;padding:8px 0;}
+.ns{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:10px 20px 4px;}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:var(--muted);border-left:3px solid transparent;font-family:var(--fh);font-size:14px;font-weight:500;user-select:none;transition:all .2s;}
+.ni:hover{color:var(--text);background:rgba(79,142,247,.07);}
+.ni.active{color:var(--accent);border-left-color:var(--accent);background:rgba(79,142,247,.1);}
+.nic{font-size:16px;width:20px;text-align:center;}
+.main{margin-left:230px;flex:1;padding:22px 26px;min-height:100vh;}
+.page{display:none;}.page.active{display:block;}
+.ph{margin-bottom:22px;}
+.ph h2{font-family:var(--fh);font-size:25px;font-weight:700;}
+.ph p{color:var(--muted);font-size:13px;margin-top:3px;}
+
+/* SYNC */
+.sync{position:fixed;top:14px;right:14px;background:var(--green);color:#fff;padding:6px 14px;border-radius:20px;font-family:var(--fh);font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;}
+.sync.show{opacity:1;}
+
+/* CARDS */
+.cr4{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px;}
+.cr3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:20px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;right:0;width:50px;height:50px;border-radius:0 12px 0 50px;opacity:.15;}
+.ci::before{background:var(--green);}.ce::before{background:var(--red);}.cs::before{background:var(--accent);}.cw::before{background:var(--accent2);}
+.sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.sv{font-family:var(--fh);font-size:22px;font-weight:700;margin-top:6px;}
+.sg{color:var(--green);}.sr{color:var(--red);}.sb{color:var(--accent);}.sy{color:var(--accent2);}
+
+/* TABLE */
+.tc{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
+.th{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.th h3{font-family:var(--fh);font-size:15px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+th{padding:9px 13px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);}
+td{padding:9px 13px;font-size:13px;border-bottom:1px solid rgba(37,42,61,.5);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(79,142,247,.04);}
+.badge{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.bi{background:rgba(62,207,142,.15);color:var(--green);}
+.be{background:rgba(247,111,111,.15);color:var(--red);}
+
+/* FORM */
+.fc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;}
+.fc h3{font-family:var(--fh);font-size:16px;margin-bottom:16px;color:var(--accent);}
+.fg3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.fg2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.fg5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;margin-top:12px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+input,select{background:#0f1118;border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;font-family:var(--fb);outline:none;width:100%;}
+input:focus,select:focus{border-color:var(--accent);}
+select option{background:#1a1e2e;}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:var(--fh);font-size:14px;font-weight:600;transition:all .2s;}
+.bp{background:var(--accent);color:#fff;}
+.bd{background:var(--red);color:#fff;}
+.bsm{padding:4px 11px;font-size:12px;border-radius:6px;}
+
+/* GREETING BANNER */
+.gb{background:linear-gradient(135deg,#1a1e2e,#1e2540);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.gb h3{font-family:var(--fh);font-size:21px;font-weight:700;}
+.gb p{font-size:13px;color:var(--muted);margin-top:4px;}
+.gi{font-size:46px;}
+
+/* STAFF */
+.sg3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:14px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.sn{font-family:var(--fh);font-size:16px;font-weight:700;margin-bottom:3px;}
+.sro{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.srow{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+
+/* JOURNAL */
+.je{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.jeh{display:flex;justify-content:space-between;margin-bottom:8px;align-items:center;}
+.jt{width:100%;border-collapse:collapse;font-size:13px;}
+.jt th{color:var(--muted);font-size:11px;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);}
+.jt td{padding:5px 8px;}
+.jdr{color:var(--red);}.jcr{color:var(--green);padding-left:18px;}
+
+/* TRIAL BALANCE */
+.tbs{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
+.tbt{padding:13px 16px;border-bottom:1px solid var(--border);font-family:var(--fh);font-size:16px;font-weight:700;}
+.tbtr td{font-family:var(--fh);font-size:14px;font-weight:700;border-top:2px solid var(--border)!important;background:rgba(79,142,247,.06);}
+.tbm{padding:11px 16px;font-family:var(--fh);font-size:14px;font-weight:600;}
+
+/* BALANCE SHEET */
+.bsg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.bss{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.bst{padding:11px 16px;font-family:var(--fh);font-size:15px;font-weight:700;border-bottom:1px solid var(--border);}
+.bsl{color:var(--red);}.bsa{color:var(--green);}
+.bsr{display:flex;justify-content:space-between;padding:8px 16px;border-bottom:1px solid rgba(37,42,61,.4);font-size:13px;}
+.bssub{background:rgba(255,255,255,.03);font-weight:600;color:var(--accent);}
+.bstot{font-family:var(--fh);font-size:14px;font-weight:700;border-top:2px solid var(--border);background:rgba(79,142,247,.06);}
+.bsgrp{padding:6px 16px 3px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;background:rgba(0,0,0,.2);}
+.bsck{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+
+/* P&L */
+.pls{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
+.plt{padding:13px 16px;border-bottom:1px solid var(--border);font-family:var(--fh);font-size:16px;font-weight:700;}
+.plg{display:grid;grid-template-columns:1fr 1fr;}
+.plc{padding:14px 16px;}
+.plct{font-family:var(--fh);font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.plr{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(37,42,61,.3);}
+.pltr{display:flex;justify-content:space-between;font-family:var(--fh);font-size:14px;font-weight:700;padding:7px 0;border-top:2px solid var(--border);margin-top:5px;}
+</style>
+</head>
+<body>
+
+<div class="sync" id="sync">✅ Cloud mein Save!</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📊</div>
+    <h1>MyBooks</h1>
+    <p>Company Accounts — Cloud Powered</p>
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-l">Login</button>
+      <button class="login-tab" id="tab-s">Sign Up</button>
+    </div>
+    <div class="lerr" id="lerr"></div>
+    <div class="lform">
+      <input type="text" id="a-name" placeholder="Full Name" style="display:none">
+      <input type="email" id="a-email" placeholder="Email address">
+      <input type="password" id="a-pass" placeholder="Password (min 6 chars)">
+      <button class="btn-login" id="btn-auth">Login</button>
+      <div class="ldiv">— ya —</div>
+      <button class="btn-google" id="btn-g">
+        <svg width="18" height="18" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Google se Login
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="logo">
+      <h1>📊 MyBooks</h1>
+      <div class="clk" id="clk">00:00:00</div>
+      <div class="dstr" id="dstr"></div>
+      <div class="gstr" id="gstr"></div>
+    </div>
+    <div class="uinfo">
+      <div class="uavt" id="uavt">U</div>
+      <div>
+        <div class="uname" id="uname">User</div>
+        <div class="uemail" id="uemail">email</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="ns">Main</div>
+      <div class="ni active" data-pg="dash"><span class="nic">🏠</span>Dashboard</div>
+      <div class="ns">Accounting</div>
+      <div class="ni" data-pg="ledger"><span class="nic">📒</span>Ledger</div>
+      <div class="ni" data-pg="journal"><span class="nic">📝</span>Journal Entry</div>
+      <div class="ni" data-pg="inv"><span class="nic">📦</span>Inventory</div>
+      <div class="ni" data-pg="staff"><span class="nic">👥</span>Staff Salary</div>
+      <div class="ns">Reports</div>
+      <div class="ni" data-pg="tb"><span class="nic">⚖️</span>Trial Balance</div>
+      <div class="ni" data-pg="pnl"><span class="nic">📈</span>Profit &amp; Loss</div>
+      <div class="ni" data-pg="bs"><span class="nic">🏛️</span>Balance Sheet</div>
+    </nav>
+    <button class="btn-out" id="btn-out">🚪 Logout</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="pg-dash">
+      <div class="gb">
+        <div>
+          <h3 id="g-main">Good Morning!</h3>
+          <p id="g-sub">Aaj ka din productive ho 🙏</p>
+          <div style="font-size:12px;color:var(--muted);margin-top:5px" id="g-t"></div>
+        </div>
+        <div class="gi" id="g-em">🌅</div>
+      </div>
+      <div class="cr4">
+        <div class="sc ci"><div class="sl">Total Income</div><div class="sv sg" id="d-i">₹0</div></div>
+        <div class="sc ce"><div class="sl">Total Expense</div><div class="sv sr" id="d-e">₹0</div></div>
+        <div class="sc cw"><div class="sl">Net P&amp;L</div><div class="sv" id="d-p">₹0</div></div>
+        <div class="sc cs"><div class="sl">Journal Entries</div><div class="sv sb" id="d-j">0</div></div>
+      </div>
+      <div class="cr4">
+        <div class="sc cs"><div class="sl">Ledger Entries</div><div class="sv sb" id="d-l">0</div></div>
+        <div class="sc cs"><div class="sl">Stock Items</div><div class="sv sb" id="d-s">0</div></div>
+        <div class="sc cw"><div class="sl">Staff</div><div class="sv sy" id="d-sf">0</div></div>
+        <div class="sc ci"><div class="sl">Stock Value</div><div class="sv sg" id="d-sv">₹0</div></div>
+      </div>
+      <div class="tc">
+        <div class="th"><h3>Recent Transactions</h3></div>
+        <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th></tr></thead>
+        <tbody id="d-rec"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Data load ho raha hai...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- LEDGER -->
+    <div class="page" id="pg-ledger">
+      <div class="ph"><h2>Ledger</h2><p>Income / Expense — Cloud mein save hoga</p></div>
+      <div class="fc">
+        <h3>+ Nayi Entry</h3>
+        <div class="fg3">
+          <div class="fg"><label>Date</label><input type="date" id="l-d"></div>
+          <div class="fg"><label>Description</label><input type="text" id="l-desc" placeholder="Details..."></div>
+          <div class="fg"><label>Category</label>
+            <select id="l-cat"><option value="Sales">Sales</option><option value="Purchase">Purchase</option><option value="Rent">Rent</option><option value="Electricity">Electricity</option><option value="Transport">Transport</option><option value="Salary">Salary</option><option value="Misc">Misc</option></select>
+          </div>
+          <div class="fg"><label>Type</label><select id="l-type"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+          <div class="fg"><label>Amount (₹)</label><input type="number" id="l-amt" placeholder="0" min="0"></div>
+          <div class="fg"><label>&nbsp;</label><button class="btn bp" id="btn-l">Add Entry</button></div>
+        </div>
+      </div>
+      <div class="tc">
+        <div class="th"><h3>All Entries</h3><span id="l-tot" style="color:var(--accent);font-family:var(--fh)"></span></div>
+        <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th>Del</th></tr></thead>
+        <tbody id="l-body"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Koi entry nahi</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div class="page" id="pg-journal">
+      <div class="ph"><h2>Journal Entry</h2><p>Double entry — Debit / Credit</p></div>
+      <div class="fc">
+        <h3>+ Entry Post Karo</h3>
+        <div class="fg2">
+          <div class="fg"><label>Date</label><input type="date" id="j-d"></div>
+          <div class="fg"><label>Narration</label><input type="text" id="j-narr" placeholder="Entry details..."></div>
+        </div>
+        <div class="fg5">
+          <div class="fg"><label>Account (Dr)</label><input type="text" id="j-dra" placeholder="Debit account"></div>
+          <div class="fg"><label>Dr Amount</label><input type="number" id="j-da" placeholder="0" min="0"></div>
+          <div class="fg"><label>Account (Cr)</label><input type="text" id="j-cra" placeholder="Credit account"></div>
+          <div class="fg"><label>Cr Amount</label><input type="number" id="j-ca" placeholder="0" min="0"></div>
+          <button class="btn bp" id="btn-j">Post</button>
+        </div>
+      </div>
+      <div id="j-list"><div style="color:var(--muted);text-align:center;padding:20px">Koi journal nahi</div></div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="page" id="pg-inv">
+      <div class="ph"><h2>Inventory</h2><p>Stock manage karo</p></div>
+      <div class="fc">
+        <h3>+ Item Add Karo</h3>
+        <div class="fg3">
+          <div class="fg"><label>Item Name</label><input type="text" id="i-n" placeholder="Product naam"></div>
+          <div class="fg"><label>Unit</label><select id="i-u"><option>Pcs</option><option>Kg</option><option>Litre</option><option>Box</option><option>Meter</option></select></div>
+          <div class="fg"><label>Quantity</label><input type="number" id="i-q" placeholder="0" min="0"></div>
+          <div class="fg"><label>Buy Price (₹)</label><input type="number" id="i-b" placeholder="0" min="0"></div>
+          <div class="fg"><label>Sell Price (₹)</label><input type="number" id="i-s" placeholder="0" min="0"></div>
+          <div class="fg"><label>&nbsp;</label><button class="btn bp" id="btn-i">Add Item</button></div>
+        </div>
+      </div>
+      <div class="tc">
+        <div class="th"><h3>Stock List</h3><span id="i-tot" style="color:var(--accent);font-family:var(--fh)"></span></div>
+        <table><thead><tr><th>Item</th><th>Unit</th><th>Qty</th><th>Buy</th><th>Sell</th><th>Value</th><th>Del</th></tr></thead>
+        <tbody id="i-body"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Koi item nahi</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- STAFF -->
+    <div class="page" id="pg-staff">
+      <div class="ph"><h2>Staff Salary</h2><p>Employees record karo</p></div>
+      <div class="fc">
+        <h3>+ Staff Add Karo</h3>
+        <div class="fg3">
+          <div class="fg"><label>Name</label><input type="text" id="s-n" placeholder="Employee naam"></div>
+          <div class="fg"><label>Role</label><input type="text" id="s-r" placeholder="Manager, Driver..."></div>
+          <div class="fg"><label>Basic (₹)</label><input type="number" id="s-b" placeholder="0" min="0"></div>
+          <div class="fg"><label>Allowance (₹)</label><input type="number" id="s-a" placeholder="0" min="0"></div>
+          <div class="fg"><label>Deduction (₹)</label><input type="number" id="s-d" placeholder="0" min="0"></div>
+          <div class="fg"><label>&nbsp;</label><button class="btn bp" id="btn-s">Add Staff</button></div>
+        </div>
+      </div>
+      <div class="sg3" id="s-grid"><p style="color:var(--muted)">Koi staff nahi</p></div>
+    </div>
+
+    <!-- TRIAL BALANCE -->
+    <div class="page" id="pg-tb">
+      <div class="ph"><h2>Trial Balance</h2><p>Dr = Cr hona chahiye</p></div>
+      <div class="tbs">
+        <div class="tbt">📋 Trial Balance Statement</div>
+        <table><thead><tr><th>Account</th><th>Type</th><th style="text-align:right;color:var(--red)">Debit ₹</th><th style="text-align:right;color:var(--green)">Credit ₹</th></tr></thead>
+        <tbody id="tb-b"></tbody>
+        <tfoot><tr class="tbtr"><td colspan="2"><strong>TOTAL</strong></td><td style="text-align:right;color:var(--red)" id="tb-dr">₹0</td><td style="text-align:right;color:var(--green)" id="tb-cr">₹0</td></tr></tfoot></table>
+        <div class="tbm" id="tb-msg"></div>
+      </div>
+    </div>
+
+    <!-- P&L -->
+    <div class="page" id="pg-pnl">
+      <div class="ph"><h2>Profit &amp; Loss</h2><p>Income minus Expense</p></div>
+      <div class="cr3">
+        <div class="sc ci"><div class="sl">Total Income</div><div class="sv sg" id="p-i">₹0</div></div>
+        <div class="sc ce"><div class="sl">Total Expense</div><div class="sv sr" id="p-e">₹0</div></div>
+        <div class="sc cw"><div class="sl">Net Profit/Loss</div><div class="sv" id="p-n">₹0</div></div>
+      </div>
+      <div class="pls">
+        <div class="plt">📊 Profit &amp; Loss Account</div>
+        <div class="plg">
+          <div class="plc" style="border-right:1px solid var(--border)">
+            <div class="plct" style="color:var(--red)">Dr — Expenses</div>
+            <div id="p-dr"></div>
+            <div class="pltr"><span>Total Expenses</span><span style="color:var(--red)" id="p-dt">₹0</span></div>
+            <div class="pltr" id="p-pr" style="display:none"><span style="color:var(--green)">Net Profit c/d</span><span style="color:var(--green)" id="p-pv">₹0</span></div>
+          </div>
+          <div class="plc">
+            <div class="plct" style="color:var(--green)">Cr — Income</div>
+            <div id="p-cr"></div>
+            <div class="pltr"><span>Total Income</span><span style="color:var(--green)" id="p-ct">₹0</span></div>
+            <div class="pltr" id="p-lr" style="display:none"><span style="color:var(--red)">Net Loss c/d</span><span style="color:var(--red)" id="p-lv">₹0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BALANCE SHEET -->
+    <div class="page" id="pg-bs">
+      <div class="ph"><h2>Balance Sheet</h2><p>Assets = Liabilities + Capital</p></div>
+      <div class="bsg">
+        <div class="bss">
+          <div class="bst bsl">⬅ Liabilities &amp; Capital</div>
+          <div class="bsgrp">Capital</div>
+          <div class="bsr"><span id="b-pl">Net Profit</span><span id="b-pv">₹0</span></div>
+          <div class="bsr bssub"><span>Total Capital</span><span id="b-ct">₹0</span></div>
+          <div class="bsgrp">Current Liabilities</div>
+          <div class="bsr"><span>Salary Payable</span><span id="b-sal">₹0</span></div>
+          <div class="bsr"><span>Creditors (Jnl Cr)</span><span id="b-cr">₹0</span></div>
+          <div class="bsr bstot"><span>TOTAL LIABILITIES</span><span id="b-lt">₹0</span></div>
+        </div>
+        <div class="bss">
+          <div class="bst bsa">Assets ➡</div>
+          <div class="bsgrp">Fixed Assets</div>
+          <div class="bsr"><span>Stock/Inventory</span><span id="b-inv">₹0</span></div>
+          <div class="bsgrp">Current Assets</div>
+          <div class="bsr"><span>Cash/Bank</span><span id="b-cash">₹0</span></div>
+          <div class="bsr"><span>Debtors (Jnl Dr)</span><span id="b-dr">₹0</span></div>
+          <div class="bsr bstot"><span>TOTAL ASSETS</span><span id="b-at">₹0</span></div>
+        </div>
+      </div>
+      <div class="bsck">
+        <div id="b-chk" style="font-family:var(--fh);font-size:16px">—</div>
+        <div style="display:flex;gap:24px">
+          <div style="text-align:center"><div style="font-size:10px;color:var(--muted)">Total Assets</div><div style="font-family:var(--fh);font-size:17px;color:var(--green)" id="b-ca">₹0</div></div>
+          <div style="text-align:center"><div style="font-size:10px;color:var(--muted)">Total Liabilities</div><div style="font-family:var(--fh);font-size:17px;color:var(--red)" id="b-cl">₹0</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var uid = null;
+var C = {ledger:[],jnl:[],inv:[],staff:[]};
+
+function fmt(n){return '₹'+Number(n||0).toLocaleString('en-IN');}
+function el(id){return document.getElementById(id);}
+function td(){return new Date().toISOString().split('T')[0];}
+function col(n){return db.collection('users').doc(uid).collection(n);}
+function syncShow(){var b=el('sync');b.classList.add('show');setTimeout(function(){b.classList.remove('show');},2000);}
+
+// CLOCK
+function greet(){
+  var h=new Date().getHours();
+  if(h>=5&&h<12)return{t:'Good Morning!',e:'🌅',s:'Aaj ka din productive ho 🙏',g:'Good Morning ☀️'};
+  if(h>=12&&h<17)return{t:'Good Afternoon!',e:'☀️',s:'Kaam mein lage raho 💪',g:'Good Afternoon ☀️'};
+  if(h>=17&&h<21)return{t:'Good Evening!',e:'🌆',s:'Kal ke liye plan karo 📋',g:'Good Evening 🌆'};
+  return{t:'Good Night!',e:'🌙',s:'Aaram karo 💤',g:'Good Night 🌙'};
+}
+function tick(){
+  var n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');
+  var D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(el('clk'))el('clk').textContent=h+':'+m+':'+s;
+  if(el('dstr'))el('dstr').textContent=D[n.getDay()]+', '+n.getDate()+' '+M[n.getMonth()]+' '+n.getFullYear();
+  var g=greet();
+  if(el('gstr'))el('gstr').textContent=g.g;
+  if(el('g-main'))el('g-main').textContent=g.t;
+  if(el('g-sub'))el('g-sub').textContent=g.s;
+  if(el('g-em'))el('g-em').textContent=g.e;
+  if(el('g-t'))el('g-t').textContent='Time: '+h+':'+m+':'+s;
+}
+setInterval(tick,1000);tick();
+
+// AUTH TABS
+var isLogin=true;
+el('tab-l').addEventListener('click',function(){isLogin=true;el('tab-l').classList.add('active');el('tab-s').classList.remove('active');el('btn-auth').textContent='Login';el('a-name').style.display='none';});
+el('tab-s').addEventListener('click',function(){isLogin=false;el('tab-s').classList.add('active');el('tab-l').classList.remove('active');el('btn-auth').textContent='Sign Up';el('a-name').style.display='block';});
+function showErr(m){var e=el('lerr');e.textContent=m;e.style.display='block';}
+
+// EMAIL LOGIN
+el('btn-auth').addEventListener('click',function(){
+  var email=el('a-email').value.trim(),pass=el('a-pass').value;
+  if(!email||!pass){showErr('Email aur password daalo!');return;}
+  el('lerr').style.display='none';
+  if(isLogin){
+    auth.signInWithEmailAndPassword(email,pass).catch(function(e){showErr(e.message);});
+  } else {
+    auth.createUserWithEmailAndPassword(email,pass).then(function(r){
+      return r.user.updateProfile({displayName:el('a-name').value.trim()||'User'});
+    }).catch(function(e){showErr(e.message);});
+  }
+});
+
+// GOOGLE LOGIN
+el('btn-g').addEventListener('click',function(){
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){showErr(e.message);});
+});
+
+// LOGOUT
+el('btn-out').addEventListener('click',function(){auth.signOut();});
+
+// AUTH STATE
+auth.onAuthStateChanged(function(user){
+  if(user){
+    uid=user.uid;
+    el('login-screen').style.display='none';
+    el('app').style.display='flex';
+    el('app').classList.add('show');
+    var name=user.displayName||user.email.split('@')[0];
+    el('uname').textContent=name;
+    el('uemail').textContent=user.email;
+    el('uavt').textContent=name.charAt(0).toUpperCase();
+    loadData();
+  } else {
+    uid=null;
+    el('login-screen').style.display='flex';
+    el('app').style.display='none';
+    el('app').classList.remove('show');
+  }
+});
+
+// NAV
+var pgMap={dash:rDash,ledger:rLedger,journal:rJnl,inv:rInv,staff:rStaff,tb:rTB,pnl:rPnL,bs:rBS};
+el('nav').addEventListener('click',function(e){
+  var item=e.target.closest('[data-pg]');if(!item)return;
+  var pg=item.getAttribute('data-pg');
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  item.classList.add('active');
+  el('pg-'+pg).classList.add('active');
+  if(pgMap[pg])pgMap[pg]();
+});
+
+// DELETE
+document.body.addEventListener('click',function(e){
+  var btn=e.target.closest('[data-act]');if(!btn)return;
+  var a=btn.getAttribute('data-act'),id=btn.getAttribute('data-id');
+  if(a==='dl')col('ledger').doc(id).delete().then(function(){rLedger();rDash();});
+  if(a==='dj')col('jnl').doc(id).delete().then(function(){rJnl();});
+  if(a==='di')col('inv').doc(id).delete().then(function(){rInv();});
+  if(a==='ds')col('staff').doc(id).delete().then(function(){rStaff();});
+});
+
+// LOAD DATA (realtime)
+function loadData(){
+  col('ledger').orderBy('date','desc').onSnapshot(function(s){C.ledger=s.docs.map(function(d){return Object.assign({id:d.id},d.data());});rDash();if(ap('ledger'))rLedger();});
+  col('jnl').orderBy('date','desc').onSnapshot(function(s){C.jnl=s.docs.map(function(d){return Object.assign({id:d.id},d.data());});if(ap('journal'))rJnl();});
+  col('inv').onSnapshot(function(s){C.inv=s.docs.map(function(d){return Object.assign({id:d.id},d.data());});if(ap('inv'))rInv();});
+  col('staff').onSnapshot(function(s){C.staff=s.docs.map(function(d){return Object.assign({id:d.id},d.data());});if(ap('staff'))rStaff();});
+}
+function ap(pg){return el('pg-'+pg)&&el('pg-'+pg).classList.contains('active');}
+
+// LEDGER
+el('btn-l').addEventListener('click',function(){
+  var d=el('l-d').value,desc=el('l-desc').value.trim(),cat=el('l-cat').value,type=el('l-type').value,amt=parseFloat(el('l-amt').value);
+  if(!d||!desc||!amt||amt<=0){alert('Sab fields bharo!');return;}
+  col('ledger').add({date:d,desc:desc,cat:cat,type:type,amt:amt,ts:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){syncShow();el('l-desc').value='';el('l-amt').value='';});
+});
+function rLedger(){
+  var tb=el('l-body'),data=C.ledger,inc=0,exp=0;
+  if(!data.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Koi entry nahi</td></tr>';el('l-tot').textContent='';return;}
+  tb.innerHTML=data.map(function(e){if(e.type==='income')inc+=e.amt;else exp+=e.amt;return '<tr><td>'+e.date+'</td><td>'+e.desc+'</td><td>'+e.cat+'</td><td><span class="badge '+(e.type==='income'?'bi':'be')+'">'+(e.type==='income'?'Income':'Expense')+'</span></td><td style="color:'+(e.type==='income'?'var(--green)':'var(--red)')+';font-weight:600">'+fmt(e.amt)+'</td><td><button class="btn bd bsm" data-act="dl" data-id="'+e.id+'">Del</button></td></tr>';}).join('');
+  el('l-tot').textContent='Income: '+fmt(inc)+' | Expense: '+fmt(exp);
+}
+
+// JOURNAL
+el('btn-j').addEventListener('click',function(){
+  var d=el('j-d').value,narr=el('j-narr').value.trim(),dra=el('j-dra').value.trim(),da=parseFloat(el('j-da').value)||0,cra=el('j-cra').value.trim(),ca=parseFloat(el('j-ca').value)||0;
+  if(!d||!dra||!cra||da<=0){alert('Sab fields bharo!');return;}
+  if(da!==ca){alert('Dr = Cr hona chahiye!');return;}
+  col('jnl').add({date:d,narr:narr,dra:dra,da:da,cra:cra,ca:ca,ts:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){syncShow();el('j-narr').value='';el('j-dra').value='';el('j-da').value='';el('j-cra').value='';el('j-ca').value='';});
+});
+function rJnl(){
+  var e=el('j-list'),data=C.jnl;
+  if(!data.length){e.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Koi journal nahi</div>';return;}
+  e.innerHTML=data.map(function(j){return '<div class="je"><div class="jeh"><span style="font-family:var(--fh);font-size:15px">Journal #'+j.id.slice(-4)+'</span><div style="display:flex;gap:10px;align-items:center"><span style="font-size:12px;color:var(--muted)">'+j.date+'</span><button class="btn bd bsm" data-act="dj" data-id="'+j.id+'">Del</button></div></div><div style="font-size:13px;margin-bottom:8px;color:var(--muted)">'+(j.narr||'—')+'</div><table class="jt"><tr><th>Account</th><th>Debit</th><th>Credit</th></tr><tr><td class="jdr">Dr. '+j.dra+'</td><td class="jdr">'+fmt(j.da)+'</td><td>—</td></tr><tr><td class="jcr">Cr. '+j.cra+'</td><td>—</td><td class="jcr">'+fmt(j.ca)+'</td></tr></table></div>';}).join('');
+}
+
+// INVENTORY
+el('btn-i').addEventListener('click',function(){
+  var n=el('i-n').value.trim(),u=el('i-u').value,q=parseFloat(el('i-q').value)||0,b=parseFloat(el('i-b').value)||0,s=parseFloat(el('i-s').value)||0;
+  if(!n){alert('Item naam daalo!');return;}
+  col('inv').add({name:n,unit:u,qty:q,buy:b,sell:s}).then(function(){syncShow();el('i-n').value='';el('i-q').value='';el('i-b').value='';el('i-s').value='';});
+});
+function rInv(){
+  var tb=el('i-body'),data=C.inv,tot=0;
+  if(!data.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Koi item nahi</td></tr>';el('i-tot').textContent='';return;}
+  tb.innerHTML=data.map(function(i){tot+=i.qty*i.buy;return '<tr><td><strong>'+i.name+'</strong></td><td>'+i.unit+'</td><td>'+i.qty+'</td><td>'+fmt(i.buy)+'</td><td>'+fmt(i.sell)+'</td><td style="color:var(--accent);font-weight:600">'+fmt(i.qty*i.buy)+'</td><td><button class="btn bd bsm" data-act="di" data-id="'+i.id+'">Del</button></td></tr>';}).join('');
+  el('i-tot').textContent='Total Value: '+fmt(tot);
+}
+
+// STAFF
+el('btn-s').addEventListener('click',function(){
+  var n=el('s-n').value.trim(),r=el('s-r').value.trim(),b=parseFloat(el('s-b').value)||0,a=parseFloat(el('s-a').value)||0,d=parseFloat(el('s-d').value)||0;
+  if(!n){alert('Naam daalo!');return;}
+  col('staff').add({name:n,role:r,bas:b,all:a,ded:d}).then(function(){syncShow();el('s-n').value='';el('s-r').value='';el('s-b').value='';el('s-a').value='';el('s-d').value='';});
+});
+function rStaff(){
+  var g=el('s-grid'),data=C.staff;
+  if(!data.length){g.innerHTML='<p style="color:var(--muted)">Koi staff nahi</p>';return;}
+  g.innerHTML=data.map(function(s){var net=s.bas+s.all-s.ded;return '<div class="scard"><div class="sn">'+s.name+'</div><div class="sro">'+(s.role||'—')+'</div><div class="srow"><span>Basic</span><span>'+fmt(s.bas)+'</span></div><div class="srow"><span>Allowance</span><span>'+fmt(s.all)+'</span></div><div class="srow"><span>Deduction</span><span style="color:var(--red)">-'+fmt(s.ded)+'</span></div><div class="srow" style="border-top:1px solid var(--border);padding-top:7px;margin-top:5px"><span><strong>Net Salary</strong></span><span style="color:var(--green)">'+fmt(net)+'</span></div><div style="margin-top:10px"><button class="btn bd bsm" data-act="ds" data-id="'+s.id+'">Remove</button></div></div>';}).join('');
+}
+
+// HELPERS
+function aInc(){return C.ledger.filter(function(x){return x.type==='income';}).reduce(function(a,b){return a+b.amt;},0);}
+function aExp(){return C.ledger.filter(function(x){return x.type==='expense';}).reduce(function(a,b){return a+b.amt;},0);}
+
+// DASHBOARD
+function rDash(){
+  var inc=aInc(),exp=aExp(),pnl=inc-exp;
+  el('d-i').textContent=fmt(inc);el('d-e').textContent=fmt(exp);
+  el('d-j').textContent=C.jnl.length;el('d-l').textContent=C.ledger.length;el('d-s').textContent=C.inv.length;el('d-sf').textContent=C.staff.length;
+  el('d-sv').textContent=fmt(C.inv.reduce(function(a,i){return a+i.qty*i.buy;},0));
+  var pe=el('d-p');pe.textContent=(pnl<0?'- ':'')+fmt(Math.abs(pnl));pe.style.color=pnl>=0?'var(--green)':'var(--red)';
+  el('d-rec').innerHTML=C.ledger.slice(0,6).map(function(e){return '<tr><td>'+e.date+'</td><td>'+e.desc+'</td><td>'+e.cat+'</td><td><span class="badge '+(e.type==='income'?'bi':'be')+'">'+(e.type==='income'?'Income':'Expense')+'</span></td><td style="color:'+(e.type==='income'?'var(--green)':'var(--red)')+';font-weight:600">'+fmt(e.amt)+'</td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Koi entry nahi</td></tr>';
+}
+
+// TRIAL BALANCE
+function rTB(){
+  var acc={};
+  function add(n,t,dr,cr){if(!acc[n])acc[n]={t:t,dr:0,cr:0};acc[n].dr+=dr;acc[n].cr+=cr;}
+  C.jnl.forEach(function(j){add(j.dra,'Journal',j.da,0);add(j.cra,'Journal',0,j.ca);});
+  C.ledger.forEach(function(e){if(e.type==='income')add(e.cat,'Income',0,e.amt);else add(e.cat,'Expense',e.amt,0);});
+  var sal=C.staff.reduce(function(a,s){return a+s.bas+s.all-s.ded;},0);
+  if(sal>0){add('Salary Expense','Expense',sal,0);add('Salary Payable','Liability',0,sal);}
+  var stk=C.inv.reduce(function(a,i){return a+i.qty*i.buy;},0);
+  if(stk>0)add('Inventory','Asset',stk,0);
+  var keys=Object.keys(acc).filter(function(k){return acc[k].dr>0||acc[k].cr>0;});
+  var tb=el('tb-b');
+  if(!keys.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Pehle entries daalo</td></tr>';el('tb-dr').textContent='₹0';el('tb-cr').textContent='₹0';el('tb-msg').innerHTML='';return;}
+  var tdr=0,tcr=0;
+  tb.innerHTML=keys.map(function(k){var a=acc[k];tdr+=a.dr;tcr+=a.cr;return '<tr><td><strong>'+k+'</strong></td><td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.05);color:var(--muted)">'+a.t+'</span></td><td style="text-align:right;color:'+(a.dr>0?'var(--red)':'var(--muted)')+'">'+(a.dr>0?fmt(a.dr):'—')+'</td><td style="text-align:right;color:'+(a.cr>0?'var(--green)':'var(--muted)')+'">'+(a.cr>0?fmt(a.cr):'—')+'</td></tr>';}).join('');
+  el('tb-dr').textContent=fmt(tdr);el('tb-cr').textContent=fmt(tcr);
+  el('tb-msg').innerHTML=Math.abs(tdr-tcr)<0.01?'✅ <span style="color:var(--green)">Trial Balance Balanced!</span>':'⚠️ <span style="color:var(--accent2)">Difference: '+fmt(Math.abs(tdr-tcr))+'</span>';
+}
+
+// P&L
+function rPnL(){
+  var inc=aInc(),exp=aExp(),pnl=inc-exp;
+  el('p-i').textContent=fmt(inc);el('p-e').textContent=fmt(exp);
+  var pn=el('p-n');pn.textContent=(pnl>=0?'Profit: ':'Loss: ')+fmt(Math.abs(pnl));pn.style.color=pnl>=0?'var(--green)':'var(--red)';
+  var ec={};C.ledger.filter(function(x){return x.type==='expense';}).forEach(function(e){if(!ec[e.cat])ec[e.cat]=0;ec[e.cat]+=e.amt;});
+  var sal=C.staff.reduce(function(a,s){return a+s.bas+s.all-s.ded;},0);if(sal>0){if(!ec['Salary'])ec['Salary']=0;ec['Salary']+=sal;}
+  el('p-dr').innerHTML=Object.keys(ec).map(function(k){return '<div class="plr"><span>'+k+'</span><span style="color:var(--red)">'+fmt(ec[k])+'</span></div>';}).join('')||'<div class="plr" style="color:var(--muted)">No expenses</div>';
+  el('p-dt').textContent=fmt(exp+sal);
+  var ic={};C.ledger.filter(function(x){return x.type==='income';}).forEach(function(e){if(!ic[e.cat])ic[e.cat]=0;ic[e.cat]+=e.amt;});
+  el('p-cr').innerHTML=Object.keys(ic).map(function(k){return '<div class="plr"><span>'+k+'</span><span style="color:var(--green)">'+fmt(ic[k])+'</span></div>';}).join('')||'<div class="plr" style="color:var(--muted)">No income</div>';
+  el('p-ct').textContent=fmt(inc);
+  if(pnl>=0){el('p-pr').style.display='flex';el('p-pv').textContent=fmt(pnl);el('p-lr').style.display='none';}
+  else{el('p-lr').style.display='flex';el('p-lv').textContent=fmt(Math.abs(pnl));el('p-pr').style.display='none';}
+}
+
+// BALANCE SHEET
+function rBS(){
+  var inc=aInc(),exp=aExp(),pnl=inc-exp;
+  var sal=C.staff.reduce(function(a,s){return a+s.bas+s.all-s.ded;},0);
+  var stk=C.inv.reduce(function(a,i){return a+i.qty*i.buy;},0);
+  var jdr=C.jnl.reduce(function(a,j){return a+j.da;},0),jcr=C.jnl.reduce(function(a,j){return a+j.ca;},0);
+  var cash=Math.max(inc-exp,0),tL=pnl+sal+jcr,tA=stk+cash+jdr;
+  el('b-pl').textContent=pnl>=0?'Net Profit':'Net Loss';
+  el('b-pv').textContent=(pnl<0?'- ':'')+fmt(Math.abs(pnl));el('b-pv').style.color=pnl>=0?'var(--green)':'var(--red)';
+  el('b-ct').textContent=fmt(pnl);el('b-sal').textContent=fmt(sal);el('b-cr').textContent=fmt(jcr);el('b-lt').textContent=fmt(tL);
+  el('b-inv').textContent=fmt(stk);el('b-cash').textContent=fmt(cash);el('b-dr').textContent=fmt(jdr);el('b-at').textContent=fmt(tA);
+  el('b-ca').textContent=fmt(tA);el('b-cl').textContent=fmt(tL);
+  el('b-chk').innerHTML=Math.abs(tA-tL)<1?'✅ <span style="color:var(--green)">Balanced! Assets = Liabilities</span>':'⚠️ <span style="color:var(--accent2)">Difference: '+fmt(Math.abs(tA-tL))+'</span>';
+}
+
+// INIT
+el('l-d').value=td();el('j-d').value=td();
+</script>
+</body>
+</html>
