@@ -720,5 +720,33 @@ function rBS(){
 el('l-date').value=todayStr();
 el('j-date').value=todayStr();
 </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAiDf0a4SF5_MeLaTl5dRTzjw8L-06s5q0",
+    authDomain: "mybook-app-71f79.firebaseapp.com",
+    projectId: "mybook-app-71f79",
+    storageBucket: "mybook-app-71f79.firebasestorage.app",
+    messagingSenderId: "713252973517",
+    appId: "1:713252973517:web:8a9685bfca9675dc843284"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function saveData() {
+    await addDoc(collection(db, "users"), {
+      name: "Nitin",
+      time: new Date()
+    });
+    alert("Data saved 👍");
+  }
+
+  window.saveData = saveData;
+</script>
+
+<button onclick="saveData()">Save Data</button>
 </body>
 </html>
