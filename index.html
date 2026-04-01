@@ -9,9 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <!-- ✅ FIREBASE SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <style>
 :root{--bg:#0d0f14;--surface:#141720;--card:#1a1e2e;--border:#252a3d;--accent:#4f8ef7;--accent2:#f7c94f;--green:#3ecf8e;--red:#f76f6f;--text:#e8eaf0;--muted:#6b7280;--fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;}
@@ -721,32 +718,28 @@ el('l-date').value=todayStr();
 el('j-date').value=todayStr();
 </script>
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
-    apiKey: "AIzaSyAiDf0a4SF5_MeLaTl5dRTzjw8L-06s5q0",
+    apiKey: "AIzaSyAiDfOa4SF5_MeLaTl5dRTzjw8L-06s5q0",
     authDomain: "mybook-app-71f79.firebaseapp.com",
     projectId: "mybook-app-71f79",
     storageBucket: "mybook-app-71f79.firebasestorage.app",
     messagingSenderId: "713252973517",
-    appId: "1:713252973517:web:8a9685bfca9675dc843284"
+    appId: "1:713252973517:web:8a9685bfca9675dc843284",
+    measurementId: "G-D56TS0DWNJ"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  async function saveData() {
-    await addDoc(collection(db, "users"), {
-      name: "Nitin",
-      time: new Date()
-    });
-    alert("Data saved 👍");
-  }
-
-  window.saveData = saveData;
+  const analytics = getAnalytics(app);
 </script>
-
-<button onclick="saveData()">Save Data</button>
 </body>
 </html>
